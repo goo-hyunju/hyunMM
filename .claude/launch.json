@@ -1,0 +1,12 @@
+{
+	"version": "0.0.1",
+	"configurations": [
+		{
+			"name": "hyunmm-dev",
+			"runtimeExecutable": "cmd",
+			"runtimeArgs": ["/c", "npx electron-vite dev"],
+			"port": 5173,
+			"autoPort": true
+		}
+	]
+}

@@ -1,0 +1,27 @@
+# Node
+node_modules/
+out/
+dist/
+
+# Python
+service/.venv/
+__pycache__/
+*.pyc
+service/checkpoints/
+
+# 사용자 프로젝트 파일
+projects/*
+!projects/.gitkeep
+
+# 환경·시크릿
+.env
+.env.*
+!.env.example
+
+# 로컬 설정
+.claude/settings.local.json
+.claude/scheduled_tasks.lock
+
+# OS
+Thumbs.db
+.DS_Store
