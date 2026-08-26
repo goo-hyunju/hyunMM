@@ -1,0 +1,1128 @@
+<!--
+  ===== hyunMM 구조·원리 문서 (문서양식_템플릿.html 형식) =====
+  원칙: 실제 있는 것만 · 거짓 없이. 코드로 검증된 사실만, 근거(파일:줄)와 함께.
+  작성 기준 코드: develop 브랜치 작업본 (2026-08-24, v0.1.0 + 미커밋 timeline/transport/생성 계약 작업)
+-->
+<title>hyunMM 구조·원리 — AI DAW 아키텍처 문서</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  :root{
+    /* ===== 라이트 테마 (SCS 표준 명세서 양식) ===== */
+    --fg:#1c1f24; --fg-soft:#445063; --muted:#7a8599;
+    --bg:#ffffff; --bg-soft:#f7f8fa; --line:#e3e7ee;
+    --accent:#1f4ea1; --accent-soft:#eaf1fb;
+    --ink:#1c1f24; --ink2:#445063;
+    --ok:#1a7f4b; --warn:#a86a00; --bad:#c0392b;
+    --old:#7a8599; --new:#1a7f4b; --both:#1f4ea1; --chg:#a86a00;
+    --code-bg:#f3f5f9;
+    --note-bg:#f0f7ff; --note-border:#9cc4f0;
+    --warn-bg:#fff7e6; --warn-border:#f0c36d;
+    --ok-bg:#f1fbf5; --ok-border:#8fd7ad;
+    --bad-bg:#fdecec; --bad-border:#f0b4b4;
+    --table-head:#eef1f6;
+    --mono:"JetBrains Mono","SFMono-Regular",Consolas,"D2Coding","Liberation Mono",Menlo,monospace;
+    --sans:"Pretendard","Noto Sans KR",-apple-system,BlinkMacSystemFont,"Segoe UI","Malgun Gothic","맑은 고딕",sans-serif;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--sans);line-height:1.7;font-size:15px;-webkit-font-smoothing:antialiased}
+  a{color:var(--accent);text-decoration:none}
+  a:hover{text-decoration:underline}
+  .wrap{display:grid;grid-template-columns:280px 1fr;max-width:1520px;margin:0 auto;min-height:100vh}
+  nav{position:sticky;top:0;align-self:start;height:100vh;overflow-y:auto;padding:24px 18px 40px;border-right:1px solid var(--line);background:var(--bg-soft)}
+  nav h2{font-size:12px;letter-spacing:.06em;color:var(--muted);text-transform:uppercase;margin:20px 0 8px}
+  nav a{display:block;color:var(--fg-soft);text-decoration:none;padding:5px 10px;border-radius:5px;font-size:13.3px;border-left:2px solid transparent}
+  nav a:hover{background:var(--accent-soft);color:var(--accent);text-decoration:none;border-left-color:var(--accent)}
+  nav .brand{font-weight:700;font-size:15px;color:var(--fg);letter-spacing:-.01em}
+  nav .sub{font-size:12px;color:var(--muted);margin-bottom:8px}
+  nav .navbadge{display:inline-block;margin-top:6px;padding:2px 8px;background:var(--accent);color:#fff;font-size:10.5px;font-weight:700;border-radius:3px;letter-spacing:.03em}
+  main{padding:0 46px 120px;max-width:1160px}
+  h1{font-size:28px;margin:.2em 0 .1em;letter-spacing:-.01em;color:var(--fg)}
+  h2.sec,h2.section{font-size:23px;margin:2.2em 0 .6em;padding-bottom:8px;border-bottom:1px solid var(--line);color:var(--accent)}
+  h3,h3.subsection{font-size:17.5px;margin:1.6em 0 .4em;color:var(--fg)}
+  h4{font-size:14.8px;margin:1.2em 0 .3em;color:var(--fg-soft);font-weight:600}
+  h5{font-size:14px;margin:1em 0 .3em;color:var(--fg-soft);font-weight:600}
+  p{margin:.5em 0}
+  code{font-family:var(--mono);background:var(--code-bg);border:1px solid var(--line);padding:1px 5px;border-radius:4px;font-size:12.6px;color:#26406b}
+  .lead{color:var(--fg-soft);font-size:15.5px}
+  .muted{color:var(--muted)}
+  ul,ol{padding-left:22px}
+  li{margin:.28em 0}
+  .tbl{width:100%;border-collapse:collapse;margin:14px 0;font-size:13.4px;border:1px solid var(--line)}
+  .tbl th{background:var(--table-head);text-align:left;padding:9px 11px;color:var(--fg);font-weight:600;border:1px solid var(--line);vertical-align:top}
+  .tbl td{padding:8px 11px;border:1px solid var(--line);vertical-align:top;background:#fff}
+  .tbl tr:hover td{background:var(--bg-soft)}
+  .tbl td.center,.tbl th.center{text-align:center}
+  .scroll{overflow-x:auto}
+  .src{font-family:var(--mono);font-size:11.4px;color:var(--muted);white-space:nowrap}
+  .b{display:inline-block;font-size:10.5px;font-weight:700;padding:1px 8px;border-radius:20px;vertical-align:middle;line-height:1.7;white-space:nowrap}
+  .b.old{background:#eef0f4;color:#5b6472;border:1px solid #d5dae2}
+  .b.new{background:#e7f7ef;color:#1a7f4b;border:1px solid #b3e6cc}
+  .b.both{background:#e9f1fb;color:#1f4ea1;border:1px solid #bcd5f2}
+  .b.chg{background:#fff4e0;color:#a86a00;border:1px solid #f0d199}
+  .b.del{background:#fdeaea;color:#c0392b;border:1px solid #f2c4c4}
+  .b.ok{background:#e7f7ef;color:#1a7f4b;border:1px solid #b3e6cc}
+  .b.ver{background:#eef0fb;color:#4a3fa8;border:1px solid #cfc9f0;font-family:var(--mono);font-size:10px}
+  .note{border:1px solid var(--note-border);border-left:4px solid var(--accent);background:var(--note-bg);padding:12px 16px;border-radius:0 6px 6px 0;margin:14px 0}
+  .note.warn{border-color:var(--warn-border);border-left-color:var(--warn-border);background:var(--warn-bg)}
+  .note.bad{border-color:var(--bad-border);border-left-color:var(--bad);background:var(--bad-bg)}
+  .note.ok{border-color:var(--ok-border);border-left-color:var(--ok);background:var(--ok-bg)}
+  .note .t,.note .label{font-weight:700;display:block;margin-bottom:3px;color:var(--accent)}
+  .note.warn .t{color:var(--warn)}
+  .note.bad .t{color:var(--bad)}
+  .note.ok .t{color:var(--ok)}
+  .cards{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:16px 0}
+  .card{border:1px solid var(--line);border-radius:8px;padding:16px 18px;background:var(--bg-soft)}
+  .card h3{margin-top:0}
+  .kv{display:flex;gap:8px;font-size:13px;margin:3px 0}
+  .kv .k{color:var(--muted);min-width:74px}
+  .diagram{background:var(--bg-soft);border:1px solid var(--line);border-radius:8px;padding:16px;font-family:var(--mono);font-size:12px;color:#2c3a52;overflow-x:auto;white-space:pre;line-height:1.5}
+  figure.fig{margin:18px 0;border:1px solid var(--line);border-radius:8px;background:#fff;padding:14px 14px 8px;overflow-x:auto}
+  figure.fig svg{display:block;width:100%;min-width:640px;height:auto}
+  figure.fig img{display:block;width:100%;border-radius:6px;border:1px solid var(--line);cursor:zoom-in;transition:box-shadow .12s}
+  figure.fig img:hover{box-shadow:0 0 0 2px var(--accent)}
+  .lbx{position:fixed;inset:0;z-index:100;background:rgba(0,0,0,.86);display:none;cursor:zoom-out;padding:24px}
+  .lbx.open{display:block}
+  .lbx-stage{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;overflow:hidden}
+  .lbx img{max-width:96vw;max-height:90vh;width:auto;height:auto;border-radius:6px;box-shadow:0 8px 44px rgba(0,0,0,.6);transform-origin:center center;will-change:transform;user-select:none;-webkit-user-drag:none}
+  .lbx .lbx-close{position:absolute;top:14px;right:20px;color:#fff;font-size:32px;line-height:1;cursor:pointer;background:none;border:none;padding:4px 10px;z-index:3}
+  .lbx-zoombar{position:absolute;top:14px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:6px;background:rgba(30,34,42,.92);border:1px solid #3a4150;border-radius:8px;padding:5px 8px;z-index:3}
+  .lbx-zoombar button{appearance:none;border:none;background:#2b3140;color:#e4e7ec;font-size:16px;width:30px;height:28px;border-radius:5px;cursor:pointer;line-height:1}
+  .lbx-zoombar button:hover{background:var(--accent);color:#fff}
+  .lbx-zval{color:#cfd6e0;font-size:12.5px;min-width:46px;text-align:center}
+  .lbx .lbx-cap{position:absolute;bottom:14px;left:0;right:0;text-align:center;color:#d3d9e2;font-size:13px;padding:0 24px;pointer-events:none;z-index:2}
+  @media print{.lbx{display:none!important}}
+  figcaption{font-size:12px;color:var(--muted);margin-top:8px;padding-top:8px;border-top:1px solid var(--line)}
+  pre.frame{background:var(--code-bg);border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:6px;padding:10px 12px;font-family:var(--mono);font-size:11.6px;color:#2c3a52;overflow-x:auto;white-space:pre-wrap;word-break:break-all;margin:8px 0;line-height:1.5}
+  pre.frame .tp{color:#a86a00;font-weight:700}
+  .live{display:inline-block;font-size:10.5px;font-weight:700;padding:1px 8px;border-radius:20px;background:#fdeaea;color:#c0392b;border:1px solid #f0b4b4}
+  .steps{counter-reset:st;list-style:none;padding-left:0}
+  .steps li{position:relative;padding:8px 8px 8px 44px;margin:8px 0;border:1px solid var(--line);border-radius:8px;background:var(--bg-soft)}
+  .steps li::before{counter-increment:st;content:counter(st);position:absolute;left:10px;top:9px;width:24px;height:24px;border-radius:50%;background:var(--accent-soft);border:1px solid var(--accent);color:var(--accent);font-weight:700;font-size:13px;display:flex;align-items:center;justify-content:center}
+  .legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12.3px;color:var(--fg-soft);margin:8px 0}
+  .verify{font-size:11px;color:var(--ok);font-weight:700}
+  hr.soft{border:none;border-top:1px solid var(--line);margin:24px 0}
+  .foot{color:var(--muted);font-size:12.3px;margin-top:40px;border-top:1px solid var(--line);padding-top:16px}
+  .tag{font-family:var(--mono);font-size:11px;color:var(--muted)}
+  .cover{padding:40px 0 40px;border-bottom:2px solid var(--accent);margin-bottom:12px}
+  .cover .badge{display:inline-block;padding:3px 10px;background:var(--accent);color:#fff;font-size:12px;border-radius:3px;letter-spacing:.04em}
+  .cover h1{font-size:30px;line-height:1.3;margin:14px 0 6px}
+  .cover h1 small{display:block;font-size:16px;color:var(--fg-soft);font-weight:500;margin-top:6px}
+  .cover .subtitle{font-size:16px;color:var(--fg-soft);margin:0 0 22px}
+  .cover .meta{display:grid;grid-template-columns:150px 1fr;row-gap:6px;column-gap:18px;font-size:14px;color:var(--fg-soft);margin-top:18px}
+  .cover .meta dt{color:var(--muted);font-weight:500}
+  .cover .meta dd{margin:0;color:var(--fg)}
+  .cover .copyright{margin-top:24px;padding:14px 18px;background:var(--bg-soft);border:1px solid var(--line);border-radius:6px;font-size:12.5px;color:var(--fg-soft);line-height:1.6}
+  .cover .copyright p{margin:5px 0}
+  @media print{
+    nav{display:none}
+    .wrap{display:block}
+    main{padding:0;max-width:100%}
+    h2.sec,h2.section{page-break-before:always}
+    .cover{page-break-after:always}
+    a{color:inherit;text-decoration:none}
+    .note,.card,.diagram,figure.fig,.steps li{break-inside:avoid}
+    body{font-size:12pt}
+  }
+  @media(max-width:1000px){.wrap{grid-template-columns:1fr}nav{position:static;height:auto;border-right:none;border-bottom:1px solid var(--line)}main{padding:0 24px 60px}.cards{grid-template-columns:1fr}.cover .meta{grid-template-columns:110px 1fr}}
+</style>
+<style>
+  /* ===== 탭 시스템 ===== */
+  .doc-header{max-width:1520px;margin:0 auto;padding:28px 46px 10px}
+  .doc-header .section{border-bottom:none;padding:0;margin:0}
+  .doctabs{position:sticky;top:0;z-index:20;display:flex;flex-wrap:wrap;gap:4px;
+    max-width:1520px;margin:0 auto;padding:0 46px;background:var(--bg);
+    border-bottom:1px solid var(--line)}
+  .doctab{appearance:none;border:1px solid transparent;border-bottom:none;background:transparent;
+    color:var(--fg-soft);font-family:var(--sans);font-size:14.5px;font-weight:600;
+    padding:11px 20px;border-radius:8px 8px 0 0;cursor:pointer;position:relative;top:1px}
+  .doctab:hover{background:var(--bg-soft);color:var(--accent)}
+  .doctab.active{background:var(--bg);color:var(--accent);border-color:var(--line);
+    box-shadow:0 -2px 0 var(--accent) inset}
+  .tabpanel{display:none}
+  .tabpanel.active{display:block}
+  .tabgrid{display:grid;grid-template-columns:260px 1fr;max-width:1520px;margin:0 auto;min-height:60vh}
+  .tabgrid .toc{position:sticky;top:49px;align-self:start;height:calc(100vh - 49px);overflow-y:auto;
+    padding:22px 16px 40px;border-right:1px solid var(--line);background:var(--bg-soft)}
+  .tabgrid .toc-title{font-weight:700;font-size:15px;color:var(--fg)}
+  .tabgrid .toc-sub{font-size:12px;color:var(--muted);margin:2px 0 12px;line-height:1.5}
+  .tabgrid .toc a{display:block;color:var(--fg-soft);text-decoration:none;padding:5px 10px;
+    border-radius:5px;font-size:13px;border-left:2px solid transparent;margin:1px 0}
+  .tabgrid .toc a:hover{background:var(--accent-soft);color:var(--accent);border-left-color:var(--accent)}
+  .tabgrid .doc{padding:0 46px 120px;max-width:1160px}
+  .tabgrid .doc h2.sec:first-child,.tabgrid .doc h2.section:first-child{margin-top:1em}
+  @media print{
+    .doctabs{display:none}.tabpanel{display:block!important}.tabgrid{display:block}
+    .tabgrid .toc{display:none}.tabgrid .doc{padding:0;max-width:100%}
+    .tabpanel{page-break-before:always}
+  }
+  @media(max-width:1000px){
+    .doc-header{padding:20px 20px 8px}.doctabs{padding:0 12px}.doctab{padding:9px 13px;font-size:13px}
+    .tabgrid{grid-template-columns:1fr}
+    .tabgrid .toc{position:static;height:auto;border-right:none;border-bottom:1px solid var(--line)}
+    .tabgrid .doc{padding:0 20px 60px}
+  }
+</style>
+<style>
+  /* ===== 언어 (i18n · 한국어/中文) ===== */
+  .doc-header{position:relative}
+  .doclang-wrap{position:absolute;top:24px;right:46px}
+  .doclang{display:inline-flex;gap:2px;border:1px solid var(--line);border-radius:6px;padding:2px;background:var(--bg-soft)}
+  .doclang button{appearance:none;border:none;background:transparent;color:var(--fg-soft);font-family:var(--sans);font-size:12.5px;font-weight:600;padding:4px 11px;border-radius:4px;cursor:pointer}
+  .doclang button:hover{color:var(--accent)}
+  .doclang button.active{background:var(--accent);color:#fff}
+  .i18n-zh{display:none}
+  body.zh .i18n-ko{display:none}
+  body.zh .i18n-zh{display:inline}
+  .m-zh{display:none}
+  body.zh .m-ko{display:none}
+  body.zh .m-zh{display:block}
+  @media print{.doclang-wrap{display:none}}
+  @media(max-width:1000px){.doclang-wrap{position:static;margin:0 0 10px}}
+</style>
+
+<div class="doc-header">
+  <div class="doclang-wrap"><div class="doclang" id="doclang">
+    <button type="button" id="btnKo">한국어</button>
+    <button type="button" id="btnZh">中文</button>
+  </div></div>
+<section class="cover">
+    <span class="badge">ARCHITECTURE</span>
+    <h1>hyunMM 구조·원리
+      <small>AI DAW 아키텍처 문서 · 개요 / 실행 구조 / 오디오 엔진 / UI·상태 / AI 서비스 / 계약</small>
+    </h1>
+    <p class="subtitle">Electron + React 19 + Web Audio 렌더러와 로컬 Python FastAPI AI 서비스로 구성된 데스크톱 AI DAW의 동작 원리</p>
+
+    <dl class="meta">
+      <dt>문서번호</dt><dd>HMM-ARCH-001</dd>
+      <dt>대상</dt><dd><code>hyunmm</code> <span class="b ver">v0.1.0</span> (develop 브랜치 작업본, 2026-08-24 기준)</dd>
+      <dt>문서 구분</dt><dd>기술 문서 (아키텍처)</dd>
+      <dt>작성</dt><dd>Claude Code (소스 코드 교차검증)</dd>
+      <dt>검토</dt><dd>—</dd>
+      <dt>승인</dt><dd>—</dd>
+    </dl>
+
+    <div class="copyright">
+      <p>본 문서는 hyunMM 프로젝트 내부 참조용이다.</p>
+      <p>내용은 소스 코드 교차검증에 근거하며, 코드와 문서가 어긋난 지점은 코드를 신뢰해 정정한다. 각 서술의 근거 위치는 <span class="src">파일:줄</span> 표기를 따른다.</p>
+    </div>
+  </section>
+</div>
+
+<div class="doctabs">
+  <button class="doctab active" data-tab="t1">개요</button>
+  <button class="doctab" data-tab="t2">실행 구조</button>
+  <button class="doctab" data-tab="t3">오디오 엔진</button>
+  <button class="doctab" data-tab="t4">UI·상태</button>
+  <button class="doctab" data-tab="t5">AI 서비스</button>
+  <button class="doctab" data-tab="t6">계약 (API)</button>
+</div>
+
+<!-- ================================================================ 탭 1 개요 -->
+<section class="tabpanel active" id="tab-t1">
+  <div class="tabgrid">
+    <nav class="toc">
+      <div class="toc-title">개요</div>
+      <div class="toc-sub">무엇이고, 큰 그림이 어떻게 생겼나</div>
+      <a href="#ov-what">hyunMM이란</a>
+      <a href="#ov-arch">전체 아키텍처</a>
+      <a href="#ov-status">구현 현황</a>
+      <a href="#ov-dirs">디렉터리 맵</a>
+    </nav>
+    <main class="doc">
+
+<h2 class="sec" id="ov-what">hyunMM이란</h2>
+  <p class="lead">hyunMM은 <b>AI DAW</b>다. "AI가 음악을 만들어주는 프로그램"이 아니라, <b>사람이 DAW처럼 음악을 조작하면 AI가 그 작업 맥락을 이해하고 함께 편곡·생성하는</b> 데스크톱 앱이다. <span class="src">CLAUDE.md · docs/planning/product-plan.md</span></p>
+  <ul>
+    <li><b>사용자가 주체다.</b> 드럼패드·가상 키보드·타임라인·믹서로 직접 음악을 만든다. DAW가 본체다.</li>
+    <li><b>AI는 협업자다.</b> 현재 프로젝트 상태(트랙·클립·BPM·키)를 컨텍스트로 받아 "여기에 어울리는 베이스라인" 같은 요청을 처리한다. 실제로 모든 생성 요청에는 프로젝트 컨텍스트 스냅샷이 필수로 포함된다. <span class="src">service/app/api/schemas.py:120-125</span></li>
+    <li><b>AI 출력은 완성곡이 아니라 클립이다.</b> 오디오 스템(WAV) 또는 MIDI 클립으로 타임라인에 올라가고, 수락·수정·삭제는 사용자가 한다. 클립에는 출처(<code>origin.source: 'user' | 'ai'</code>)가 기록된다. <span class="src">renderer/src/app/types/project.ts:42-46</span></li>
+  </ul>
+
+<h2 class="sec" id="ov-arch">전체 아키텍처</h2>
+  <p class="lead">프로세스 3개가 협력한다: <b>Electron main</b>(관리자) · <b>Renderer</b>(DAW 본체) · <b>Python FastAPI 서비스</b>(AI). 저장은 DB 없이 로컬 프로젝트 파일이다.</p>
+
+  <figure class="fig">
+    <svg viewBox="0 0 960 500" xmlns="http://www.w3.org/2000/svg" font-family="Pretendard,'Malgun Gothic',sans-serif">
+      <defs>
+        <marker id="ar1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M0 0 L10 5 L0 10 z" fill="#445063"/>
+        </marker>
+        <marker id="ar1b" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M0 0 L10 5 L0 10 z" fill="#1f4ea1"/>
+        </marker>
+      </defs>
+      <rect width="960" height="500" fill="#ffffff"/>
+
+      <!-- Electron main -->
+      <rect x="40" y="40" width="330" height="130" rx="10" fill="#eaf1fb" stroke="#1f4ea1" stroke-width="2"/>
+      <text x="205" y="70" text-anchor="middle" font-size="17" font-weight="700" fill="#1f4ea1">Electron main</text>
+      <text x="205" y="92" text-anchor="middle" font-size="12.5" fill="#445063">app/main/index.ts</text>
+      <text x="205" y="116" text-anchor="middle" font-size="12.5" fill="#445063">창 관리 · Python 서비스 spawn/종료</text>
+      <text x="205" y="136" text-anchor="middle" font-size="12.5" fill="#445063">프로젝트 파일 IO (도메인 로직 없음)</text>
+
+      <!-- Python service -->
+      <rect x="590" y="40" width="330" height="130" rx="10" fill="#f1fbf5" stroke="#1a7f4b" stroke-width="2"/>
+      <text x="755" y="70" text-anchor="middle" font-size="17" font-weight="700" fill="#1a7f4b">Python AI 서비스</text>
+      <text x="755" y="92" text-anchor="middle" font-size="12.5" fill="#445063">service/ · FastAPI · localhost:8930</text>
+      <text x="755" y="116" text-anchor="middle" font-size="12.5" fill="#445063">생성(오디오/MIDI) · 분석 · job 관리</text>
+      <text x="755" y="136" text-anchor="middle" font-size="12.5" fill="#445063">수 초~수십 초 비동기 작업, 취소 가능</text>
+
+      <!-- Renderer -->
+      <rect x="40" y="270" width="330" height="150" rx="10" fill="#fff" stroke="#1f4ea1" stroke-width="2.5"/>
+      <text x="205" y="300" text-anchor="middle" font-size="17" font-weight="700" fill="#1f4ea1">Renderer (DAW 본체)</text>
+      <text x="205" y="322" text-anchor="middle" font-size="12.5" fill="#445063">renderer/ · React 19 + TypeScript</text>
+      <text x="205" y="346" text-anchor="middle" font-size="12.5" fill="#445063">Web Audio 엔진 — 재생·믹싱은 여기서</text>
+      <text x="205" y="366" text-anchor="middle" font-size="12.5" fill="#445063">(Python 왕복 없음 = 저지연)</text>
+      <text x="205" y="390" text-anchor="middle" font-size="12.5" fill="#445063">타임라인 · 트랜스포트 · zustand 상태</text>
+
+      <!-- Project files -->
+      <rect x="590" y="290" width="330" height="110" rx="10" fill="#f7f8fa" stroke="#7a8599" stroke-width="2" stroke-dasharray="6 4"/>
+      <text x="755" y="322" text-anchor="middle" font-size="15" font-weight="700" fill="#445063">로컬 프로젝트 파일 (DB 없음)</text>
+      <text x="755" y="346" text-anchor="middle" font-size="12.5" fill="#445063">projects/&lt;이름&gt;/project.json</text>
+      <text x="755" y="366" text-anchor="middle" font-size="12.5" fill="#445063">+ audio/ + midi/ + samples/</text>
+
+      <!-- arrows -->
+      <line x1="370" y1="105" x2="590" y2="105" stroke="#445063" stroke-width="2" marker-end="url(#ar1)"/>
+      <text x="480" y="94" text-anchor="middle" font-size="12" font-weight="600" fill="#445063">spawn / kill</text>
+
+      <line x1="205" y1="270" x2="205" y2="170" stroke="#445063" stroke-width="2" marker-end="url(#ar1)" marker-start="url(#ar1)"/>
+      <text x="216" y="225" font-size="12" font-weight="600" fill="#445063">IPC (app/preload contextBridge)</text>
+
+      <line x1="370" y1="310" x2="640" y2="165" stroke="#1f4ea1" stroke-width="2.5" marker-end="url(#ar1b)" marker-start="url(#ar1b)"/>
+      <text x="530" y="230" text-anchor="middle" font-size="12.5" font-weight="700" fill="#1f4ea1">HTTP + WebSocket</text>
+      <text x="530" y="248" text-anchor="middle" font-size="11.5" fill="#1f4ea1">POST /generate · WS /ws/jobs/{id}</text>
+
+      <line x1="370" y1="380" x2="590" y2="352" stroke="#7a8599" stroke-width="2" stroke-dasharray="6 4" marker-end="url(#ar1)"/>
+      <text x="480" y="384" text-anchor="middle" font-size="11.5" fill="#7a8599">저장/로드 (main 경유, 구현 예정)</text>
+
+      <text x="40" y="470" font-size="11.5" fill="#7a8599" font-family="Consolas,monospace">근거: app/main/index.ts:10-28 (spawn) · app/preload/index.ts:4-11 (contextBridge) · service/app/main.py:11-19 · CLAUDE.md 아키텍처 절</text>
+    </svg>
+    <figcaption>그림 1. hyunMM 3-프로세스 아키텍처. 실시간 오디오는 렌더러의 Web Audio가, AI 생성·분석은 Python 서비스가, 프로세스 생명주기·파일 IO는 Electron main이 맡는다.</figcaption>
+  </figure>
+
+  <h3 class="subsection">역할 분리 원칙</h3>
+  <div class="scroll"><table class="tbl">
+    <thead><tr><th style="width:170px">프로세스</th><th>담당</th><th>담당하지 않는 것</th></tr></thead>
+    <tbody>
+      <tr><td><b>Electron main</b></td><td>창 생성, Python 서비스 spawn/종료, (예정) 프로젝트 파일 IO <span class="src">app/main/index.ts:10-64</span></td><td>도메인 로직 (DAW·AI 어느 쪽도 넣지 않는다)</td></tr>
+      <tr><td><b>Renderer</b></td><td>DAW UI 전부 + 실시간 오디오(Web Audio). 재생·믹싱·이펙트는 Python 왕복 없이 처리 — 저지연이 목적</td><td>서비스 내부 모듈 구조를 모른다. HTTP/WS 계약으로만 통신 <span class="src">CLAUDE.md 경계 규칙</span></td></tr>
+      <tr><td><b>Python 서비스</b></td><td>AI 생성(오디오/MIDI)·분석. 진행률은 WS 스트리밍, 항상 취소 가능 <span class="src">service/app/api/routes.py:64-72</span></td><td>실시간 오디오. 프로젝트 폴더 경로도 모른다 (v1 계약) <span class="src">service/app/api/schemas.py:92-96</span></td></tr>
+    </tbody>
+  </table></div>
+
+<h2 class="sec" id="ov-status">구현 현황</h2>
+  <p class="lead">v0.1.0 스캐폴드 위에 <b>첫 기능 슬라이스(타임라인 + 트랜스포트 + 생성 계약·mock 생성기)</b>가 작업본으로 올라와 있는 상태다.</p>
+  <div class="scroll"><table class="tbl">
+    <thead><tr><th style="width:210px">영역</th><th style="width:110px" class="center">상태</th><th>내용</th></tr></thead>
+    <tbody>
+      <tr><td>트랜스포트 (재생/정지/BPM)</td><td class="center"><span class="b ok">구현</span></td><td>Web Audio 클럭 기반 transport + 메트로놈 <span class="src">renderer/src/audio-engine/</span></td></tr>
+      <tr><td>타임라인 (표시)</td><td class="center"><span class="b ok">구현</span></td><td>트랙 레인·클립 블록·룰러·플레이헤드 렌더링 <span class="src">renderer/src/features/timeline/</span></td></tr>
+      <tr><td>서비스 생성 계약 + mock 생성기</td><td class="center"><span class="b ok">구현</span></td><td>REST+WS 계약 전체 동작, 생성기는 mock(합성 톤 WAV/MIDI) <span class="src">service/app/api/ · service/app/generation/</span></td></tr>
+      <tr><td>클립 오디오 재생</td><td class="center"><span class="b chg">미구현</span></td><td>클립은 표시만 된다. media.path 실파일 재생은 범위 밖 <span class="src">renderer/src/app/state/demoProject.ts:1-3</span></td></tr>
+      <tr><td>프로젝트 저장/로드 IPC</td><td class="center"><span class="b chg">미구현</span></td><td>현재는 데모 fixture 사용 <span class="src">renderer/src/app/state/useProjectStore.ts:8</span></td></tr>
+      <tr><td>드럼패드 / 키보드 / 믹서 / AI 패널</td><td class="center"><span class="b del">스텁</span></td><td>"미구현" 플레이스홀더 컴포넌트만 존재 <span class="src">renderer/src/features/{drum-pad,keys,mixer,ai-copilot}/</span></td></tr>
+      <tr><td>분석 (/analyze)</td><td class="center"><span class="b del">스텁</span></td><td>계약 미정의로 501 반환 <span class="src">service/app/api/routes.py:116-119</span></td></tr>
+      <tr><td>실제 AI 모델</td><td class="center"><span class="b chg">미도입</span></td><td>torch 등은 optional group <code>ai</code>로 분리, 미설치 <span class="src">service/pyproject.toml</span></td></tr>
+    </tbody>
+  </table></div>
+  <div class="note warn"><span class="t">⚠ 문서 기준 시점</span> 이 문서는 2026-08-24의 develop 작업본(미커밋 변경 포함)을 기준으로 작성됐다. 커밋·구조 변경 시 이 문서도 같이 갱신해야 한다.</div>
+
+<h2 class="sec" id="ov-dirs">디렉터리 맵</h2>
+  <div class="scroll"><table class="tbl">
+    <thead><tr><th style="width:330px">경로</th><th>역할</th></tr></thead>
+    <tbody>
+      <tr><td><code>app/main/</code></td><td>Electron main — 창, Python 서비스 spawn/종료</td></tr>
+      <tr><td><code>app/preload/</code></td><td>contextBridge로 렌더러에 안전한 API 노출 (<code>window.hyunmm</code>)</td></tr>
+      <tr><td><code>renderer/src/app/</code></td><td>부트스트랩, zustand store, 서비스 클라이언트, 타입(계약 포함)</td></tr>
+      <tr><td><code>renderer/src/audio-engine/</code></td><td>AudioContext 싱글턴, transport, transport 수학(순수 함수), 메트로놈</td></tr>
+      <tr><td><code>renderer/src/features/timeline/</code></td><td>멀티트랙 타임라인 — Timeline, TrackLane, ClipBlock, Ruler, Playhead, geometry</td></tr>
+      <tr><td><code>renderer/src/features/transport/</code></td><td>재생·정지·BPM 컨트롤 UI</td></tr>
+      <tr><td><code>renderer/src/features/{drum-pad,keys,mixer,effects,automation,ai-copilot}/</code></td><td>스텁 (구현 예정)</td></tr>
+      <tr><td><code>service/app/api/</code></td><td>FastAPI 라우트(routes.py), wire 스키마(schemas.py), job 관리(jobs.py)</td></tr>
+      <tr><td><code>service/app/generation/</code></td><td>music_generator(WAV), midi_generator(MIDI) — 현재 mock</td></tr>
+      <tr><td><code>service/app/{agent,analysis,models}/</code></td><td>스텁 — 실모델 단계에서 생성 오케스트레이션·분석·VRAM 관리</td></tr>
+      <tr><td><code>service/tests/</code></td><td>pytest — 계약 테스트, 생성 플로우 테스트</td></tr>
+      <tr><td><code>docs/api/</code></td><td>renderer↔service 계약 문서 (conventions, generation, project-schema)</td></tr>
+      <tr><td><code>projects/</code></td><td>사용자 프로젝트 파일 (gitignore 대상)</td></tr>
+    </tbody>
+  </table></div>
+
+    </main>
+  </div>
+</section>
+
+<!-- ================================================================ 탭 2 실행 구조 -->
+<section class="tabpanel" id="tab-t2">
+  <div class="tabgrid">
+    <nav class="toc">
+      <div class="toc-title">실행 구조</div>
+      <div class="toc-sub">프로세스가 어떻게 뜨고 연결되나</div>
+      <a href="#run-boot">기동 시퀀스</a>
+      <a href="#run-port">포트·주소 규약</a>
+      <a href="#run-cmd">명령어</a>
+      <a href="#run-degrade">서비스 없이도 동작</a>
+    </nav>
+    <main class="doc">
+
+<h2 class="sec" id="run-boot">기동 시퀀스</h2>
+  <p class="lead"><code>npm run dev</code> 하나로 전체가 뜬다. electron-vite가 main/preload/renderer를 빌드·기동하고, main의 <code>app.whenReady()</code>에서 Python 서비스 spawn과 창 생성이 일어난다. <span class="src">app/main/index.ts:48-55</span></p>
+
+  <figure class="fig">
+    <svg viewBox="0 0 960 400" xmlns="http://www.w3.org/2000/svg" font-family="Pretendard,'Malgun Gothic',sans-serif">
+      <defs>
+        <marker id="ar2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M0 0 L10 5 L0 10 z" fill="#1f4ea1"/>
+        </marker>
+      </defs>
+      <rect width="960" height="400" fill="#ffffff"/>
+
+      <rect x="30" y="40" width="170" height="64" rx="9" fill="#eaf1fb" stroke="#1f4ea1" stroke-width="2"/>
+      <text x="115" y="67" text-anchor="middle" font-size="14" font-weight="700" fill="#1f4ea1">npm run dev</text>
+      <text x="115" y="88" text-anchor="middle" font-size="11.5" fill="#445063">electron-vite dev</text>
+
+      <rect x="260" y="40" width="190" height="64" rx="9" fill="#fff" stroke="#1f4ea1" stroke-width="2"/>
+      <text x="355" y="67" text-anchor="middle" font-size="13.5" font-weight="700" fill="#1c1f24">main/preload/renderer</text>
+      <text x="355" y="88" text-anchor="middle" font-size="11.5" fill="#445063">번들 후 Electron 기동</text>
+
+      <rect x="510" y="40" width="180" height="64" rx="9" fill="#fff" stroke="#1f4ea1" stroke-width="2"/>
+      <text x="600" y="67" text-anchor="middle" font-size="13.5" font-weight="700" fill="#1c1f24">app.whenReady()</text>
+      <text x="600" y="88" text-anchor="middle" font-size="11.5" fill="#445063">index.ts:48</text>
+
+      <line x1="200" y1="72" x2="260" y2="72" stroke="#1f4ea1" stroke-width="2" marker-end="url(#ar2)"/>
+      <line x1="450" y1="72" x2="510" y2="72" stroke="#1f4ea1" stroke-width="2" marker-end="url(#ar2)"/>
+
+      <!-- branch -->
+      <rect x="360" y="180" width="250" height="86" rx="9" fill="#f1fbf5" stroke="#1a7f4b" stroke-width="2"/>
+      <text x="485" y="207" text-anchor="middle" font-size="13.5" font-weight="700" fill="#1a7f4b">spawnAiService()</text>
+      <text x="485" y="228" text-anchor="middle" font-size="11.5" fill="#445063">service/.venv 의 uvicorn.exe 실행</text>
+      <text x="485" y="248" text-anchor="middle" font-size="11.5" fill="#445063">app.main:app --port 8930 · index.ts:10-28</text>
+
+      <rect x="680" y="180" width="250" height="86" rx="9" fill="#eaf1fb" stroke="#1f4ea1" stroke-width="2"/>
+      <text x="805" y="207" text-anchor="middle" font-size="13.5" font-weight="700" fill="#1f4ea1">createWindow()</text>
+      <text x="805" y="228" text-anchor="middle" font-size="11.5" fill="#445063">1440×900 · contextIsolation: true</text>
+      <text x="805" y="248" text-anchor="middle" font-size="11.5" fill="#445063">dev: ELECTRON_RENDERER_URL 로드 · index.ts:30-46</text>
+
+      <line x1="600" y1="104" x2="500" y2="180" stroke="#1f4ea1" stroke-width="2" marker-end="url(#ar2)"/>
+      <line x1="640" y1="104" x2="780" y2="180" stroke="#1f4ea1" stroke-width="2" marker-end="url(#ar2)"/>
+
+      <rect x="30" y="300" width="420" height="66" rx="9" fill="#f7f8fa" stroke="#7a8599" stroke-width="1.6"/>
+      <text x="240" y="326" text-anchor="middle" font-size="12.5" font-weight="700" fill="#445063">종료: before-quit → serviceProcess.kill()</text>
+      <text x="240" y="348" text-anchor="middle" font-size="11.5" fill="#7a8599">창을 모두 닫으면(darwin 제외) app.quit() · index.ts:57-64</text>
+
+      <rect x="510" y="300" width="420" height="66" rx="9" fill="#f7f8fa" stroke="#7a8599" stroke-width="1.6"/>
+      <text x="720" y="326" text-anchor="middle" font-size="12.5" font-weight="700" fill="#445063">렌더러: window.hyunmm.serviceUrl 로 서비스 접근</text>
+      <text x="720" y="348" text-anchor="middle" font-size="11.5" fill="#7a8599">preload contextBridge 노출 · preload/index.ts:4-11, serviceClient.ts:5-7</text>
+    </svg>
+    <figcaption>그림 2. 기동·종료 시퀀스. spawn과 창 생성은 whenReady에서 병행 시작되고, 종료 시 main이 서비스 프로세스를 함께 정리한다.</figcaption>
+  </figure>
+
+  <ol class="steps">
+    <li><code>npm run dev</code> → electron-vite가 main·preload·renderer를 동시 기동한다. <span class="src">package.json scripts.dev</span></li>
+    <li>Electron main이 <code>service/.venv/Scripts/uvicorn.exe</code>(win32 기준)를 spawn — 인자 <code>app.main:app --port 8930</code>, cwd는 <code>service/</code>. <span class="src">app/main/index.ts:13-21</span></li>
+    <li>동시에 BrowserWindow 생성. dev에서는 <code>ELECTRON_RENDERER_URL</code>(vite dev 서버), 배포 빌드에서는 <code>out/renderer/index.html</code>을 로드한다. <span class="src">app/main/index.ts:41-45</span></li>
+    <li>렌더러는 preload가 노출한 <code>window.hyunmm.serviceUrl</code>(<code>http://127.0.0.1:8930</code>)로 서비스에 접근한다. 없으면 fallback 상수 사용. <span class="src">renderer/src/app/serviceClient.ts:3-7</span></li>
+    <li>종료: <code>before-quit</code>에서 <code>serviceProcess.kill()</code>. <span class="src">app/main/index.ts:61-64</span></li>
+  </ol>
+
+  <div class="note"><span class="t">패키징 미비</span> spawn 경로는 개발 단계 전제(<code>service/.venv</code> 직접 실행)다. 배포 패키징 시 번들된 Python 런타임 경로로 교체 예정이라는 주석이 코드에 명시돼 있다. <span class="src">app/main/index.ts:11-12</span> 배포용 패키저(electron-builder 등)는 아직 없다.</div>
+
+<h2 class="sec" id="run-port">포트·주소 규약</h2>
+  <div class="scroll"><table class="tbl">
+    <thead><tr><th style="width:200px">항목</th><th>값</th><th>근거</th></tr></thead>
+    <tbody>
+      <tr><td>서비스 포트</td><td><code>8930</code> — <b>양쪽에 상수로 존재, 바꾸면 둘 다 바꾼다</b></td><td><span class="src">app/main/index.ts:6 · service/app/main.py:11</span></td></tr>
+      <tr><td>렌더러가 보는 서비스 URL</td><td><code>http://127.0.0.1:8930</code> (preload 주입, fallback 동일)</td><td><span class="src">app/preload/index.ts:6 · serviceClient.ts:3</span></td></tr>
+      <tr><td>헬스체크</td><td><code>GET /health</code> → <code>{"status":"ok"}</code>. 렌더러 <code>pingService()</code>가 사용</td><td><span class="src">service/app/main.py:17-19 · serviceClient.ts:9-16</span></td></tr>
+    </tbody>
+  </table></div>
+
+<h2 class="sec" id="run-cmd">명령어</h2>
+  <div class="scroll"><table class="tbl">
+    <thead><tr><th style="width:220px">명령</th><th>동작</th></tr></thead>
+    <tbody>
+      <tr><td><code>npm run dev</code></td><td>앱 전체 기동 (main/preload/renderer + 서비스 spawn). 평소 개발은 이것 하나</td></tr>
+      <tr><td><code>npm run service:dev</code></td><td>Python 서비스만 단독 실행 — <code>uvicorn --reload --port 8930 --app-dir service</code>. API 작업 시 사용. <b>npm run dev와 동시 실행하면 포트 충돌</b></td></tr>
+      <tr><td><code>npm run typecheck</code> / <code>lint</code> / <code>test</code></td><td>tsc --noEmit / ESLint / vitest run</td></tr>
+      <tr><td><code>npm run build</code></td><td>typecheck + electron-vite build (설치 파일 생성 아님)</td></tr>
+    </tbody>
+  </table></div>
+
+<h2 class="sec" id="run-degrade">서비스 없이도 동작 (graceful degradation)</h2>
+  <p>spawn이 실패해도 앱은 죽지 않는다. <code>serviceProcess.on('error')</code>에서 로그만 남기고 <code>null</code> 처리 — <b>서비스가 없어도 DAW 본체는 동작하고 AI 기능만 비활성</b>이 되는 설계다. <span class="src">app/main/index.ts:23-27</span></p>
+  <div class="note ok"><span class="t">✅ 설계 의도</span> DAW가 본체이고 AI는 협업자라는 제품 정의가 프로세스 구조에도 반영돼 있다. AI 서비스는 실패해도 되는 부가 프로세스다.</div>
+
+    </main>
+  </div>
+</section>
+
+<!-- ================================================================ 탭 3 오디오 엔진 -->
+<section class="tabpanel" id="tab-t3">
+  <div class="tabgrid">
+    <nav class="toc">
+      <div class="toc-title">오디오 엔진</div>
+      <div class="toc-sub">transport가 시간을 세는 원리</div>
+      <a href="#ae-clock">단일 시계 원칙</a>
+      <a href="#ae-anchor">anchor 수학</a>
+      <a href="#ae-bpm">BPM 변경 = 재기준화</a>
+      <a href="#ae-play">play/stop 생명주기</a>
+      <a href="#ae-metro">메트로놈 lookahead</a>
+    </nav>
+    <main class="doc">
+
+<h2 class="sec" id="ae-clock">단일 시계 원칙</h2>
+  <p class="lead">유일한 시계는 <b><code>AudioContext.currentTime</code></b>이다. <code>Date.now()</code>나 <code>performance.now()</code>가 아니라 오디오 하드웨어 클럭을 쓴다 — 소리와 화면이 같은 시계를 봐야 어긋나지 않는다. transport의 전체 상태는 <b>anchor 쌍 (ctxTime, beats) + bpm</b> 뿐이다. <span class="src">renderer/src/audio-engine/transportMath.ts:1-2</span></p>
+  <ul>
+    <li>AudioContext는 앱 전체에 <b>싱글턴 1개</b>. <code>latencyHint: 'interactive'</code>. <span class="src">audioContext.ts:4-9</span></li>
+    <li>transport도 <b>모듈 싱글턴</b> — 모듈 스코프 원시값만 사용, zustand를 모른다. <span class="src">transport.ts:1-15</span></li>
+    <li>시간 계산은 순수 함수로 분리되어 vitest 테스트 대상이다. <span class="src">transportMath.ts · transportMath.test.ts</span></li>
+  </ul>
+
+<h2 class="sec" id="ae-anchor">anchor 수학 — 위치는 저장하지 않고 계산한다</h2>
+  <p class="lead">재생 위치를 매 틱 저장·갱신하지 않는다. "<b>ctx 시간 T일 때 위치가 B beat였다</b>"는 기준점(anchor) 하나만 기억하면, 현재 위치는 언제든 1차식으로 계산된다.</p>
+
+  <figure class="fig">
+    <svg viewBox="0 0 960 430" xmlns="http://www.w3.org/2000/svg" font-family="Pretendard,'Malgun Gothic',sans-serif">
+      <defs>
+        <marker id="ar3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M0 0 L10 5 L0 10 z" fill="#445063"/>
+        </marker>
+      </defs>
+      <rect width="960" height="430" fill="#ffffff"/>
+
+      <!-- axes -->
+      <line x1="90" y1="340" x2="900" y2="340" stroke="#445063" stroke-width="2" marker-end="url(#ar3)"/>
+      <line x1="90" y1="340" x2="90" y2="50" stroke="#445063" stroke-width="2" marker-end="url(#ar3)"/>
+      <text x="880" y="368" font-size="13" fill="#445063">AudioContext.currentTime (초)</text>
+      <text x="40" y="46" font-size="13" fill="#445063">beats</text>
+
+      <!-- grid -->
+      <line x1="90" y1="270" x2="900" y2="270" stroke="#e3e7ee" stroke-width="1"/>
+      <line x1="90" y1="200" x2="900" y2="200" stroke="#e3e7ee" stroke-width="1"/>
+      <line x1="90" y1="130" x2="900" y2="130" stroke="#e3e7ee" stroke-width="1"/>
+
+      <!-- slope 1: 120bpm -->
+      <line x1="200" y1="300" x2="530" y2="168" stroke="#1f4ea1" stroke-width="3"/>
+      <!-- slope 2 after bpm change: steeper (150bpm) -->
+      <line x1="530" y1="168" x2="820" y2="70" stroke="#1a7f4b" stroke-width="3" stroke-dasharray="0"/>
+
+      <!-- anchor points -->
+      <circle cx="200" cy="300" r="7" fill="#1f4ea1"/>
+      <text x="200" y="325" text-anchor="middle" font-size="12.5" font-weight="700" fill="#1f4ea1">anchor₁ (play 시점)</text>
+      <text x="214" y="288" font-size="11.5" fill="#445063">(anchorCtxTime, anchorBeats)</text>
+
+      <circle cx="530" cy="168" r="7" fill="#1a7f4b"/>
+      <text x="536" y="150" font-size="12.5" font-weight="700" fill="#1a7f4b">anchor₂ (setBpm 시점 — 재기준화)</text>
+      <text x="536" y="190" font-size="11.5" fill="#445063">위치 연속, 기울기만 변경</text>
+
+      <!-- slope labels -->
+      <text x="330" y="222" font-size="12.5" font-weight="600" fill="#1f4ea1" transform="rotate(-22 330 222)">기울기 = bpm/60 (예: 120bpm → 2 beat/s)</text>
+      <text x="640" y="106" font-size="12.5" font-weight="600" fill="#1a7f4b" transform="rotate(-19 640 106)">새 기울기 = 새 bpm/60</text>
+
+      <!-- now marker -->
+      <line x1="700" y1="340" x2="700" y2="110" stroke="#c0392b" stroke-width="1.6" stroke-dasharray="5 4"/>
+      <circle cx="700" cy="111" r="6" fill="#c0392b"/>
+      <text x="700" y="360" text-anchor="middle" font-size="12" fill="#c0392b" font-weight="700">now</text>
+      <text x="712" y="98" font-size="12" fill="#c0392b">positionBeatsAt(now) — 매 프레임 이 식만 평가</text>
+
+      <!-- formula box -->
+      <rect x="110" y="60" width="360" height="66" rx="8" fill="#f3f5f9" stroke="#e3e7ee"/>
+      <text x="130" y="87" font-size="13" font-family="Consolas,monospace" fill="#26406b">pos(now) = anchorBeats</text>
+      <text x="130" y="110" font-size="13" font-family="Consolas,monospace" fill="#26406b">         + (now − anchorCtxTime) × bpm/60</text>
+
+      <text x="90" y="410" font-size="11.5" fill="#7a8599" font-family="Consolas,monospace">근거: transportMath.ts:9-16 (positionBeatsAt) · :19-26 (역함수 ctxTimeAtBeat) · transport.ts:50-59 (setBpm 재기준화)</text>
+    </svg>
+    <figcaption>그림 3. anchor 수학. 시간→beat 관계는 anchor를 지나는 직선이고, 기울기가 bpm/60이다. BPM을 바꾸면 현재 위치를 새 anchor로 찍고 기울기만 바꾼다 — 위치 점프가 없다.</figcaption>
+  </figure>
+
+  <div class="scroll"><table class="tbl">
+    <thead><tr><th style="width:250px">함수</th><th>역할</th><th>근거</th></tr></thead>
+    <tbody>
+      <tr><td><code>positionBeatsAt(now, aT, aB, bpm)</code></td><td>현재 beat 위치 = <code>aB + (now − aT) × bpm/60</code>. UI(플레이헤드)가 매 프레임 호출</td><td><span class="src">transportMath.ts:9-16</span></td></tr>
+      <tr><td><code>ctxTimeAtBeat(beat, aT, aB, bpm)</code></td><td>역함수: beat → ctx 시간. 스케줄러(메트로놈, 이후 클립 재생)가 "이 beat를 언제 소리 내야 하나"에 사용</td><td><span class="src">transportMath.ts:19-26</span></td></tr>
+      <tr><td><code>clampBpm(bpm)</code></td><td>20~300으로 clamp, 비유한값은 120(기본값)으로</td><td><span class="src">transportMath.ts:4-6, 28-31</span></td></tr>
+    </tbody>
+  </table></div>
+
+  <div class="note ok"><span class="t">✅ 이 설계의 이점</span> ① 매 프레임 갱신할 상태가 없다 — 파생값 계산만 있다. ② beat 단위 위치라 BPM이 바뀌어도 클립의 음악적 위치가 불변이다(타임라인도 beat 기준 <span class="src">project.ts:65</span>). ③ 순수 함수라 오디오 없이 수학만 단위 테스트할 수 있다.</div>
+
+<h2 class="sec" id="ae-bpm">BPM 변경 = 재기준화 (re-anchoring)</h2>
+  <p>재생 중 <code>setBpm</code>이 호출되면: <b>변경 시각의 위치를 구 bpm으로 확정</b>해서 그 지점을 새 anchor로 삼고, 이후 계산부터 새 bpm 기울기를 쓴다. 위치는 연속이고 템포만 바뀐다. <span class="src">transport.ts:50-59</span></p>
+  <pre class="frame">// transport.ts:53-57 — 재기준화
+const now = getAudioContext().currentTime;
+anchorBeats = positionBeatsAt(now, anchorCtxTime, anchorBeats, bpm); // 구 bpm으로 위치 확정
+anchorCtxTime = now;
+bpm = clamped;                                                        // 이후는 새 기울기</pre>
+  <p>메트로놈은 살아 있는 anchor를 읽는 <code>beatToCtxTime</code> 콜백을 쥐고 있으므로, 재기준화 이후의 클릭은 자동으로 새 템포를 따른다. <span class="src">metronome.ts:21-24 · transport.ts:17-19</span></p>
+
+<h2 class="sec" id="ae-play">play / stop 생명주기와 엣지 케이스</h2>
+  <ul>
+    <li><b>autoplay 정책:</b> 브라우저(Chromium)는 사용자 제스처 없이 오디오를 못 켠다. <code>play()</code>는 <code>ctx.resume()</code>을 await하고, <b>suspended 동안 currentTime이 멈춰 있으므로 anchor는 resume 이후 시각으로</b> 잡는다. <span class="src">transport.ts:28-32</span></li>
+    <li><b>재진입 가드:</b> <code>playPending</code> 플래그로 resume 대기 중 중복 play를 차단. <span class="src">transport.ts:11, 23</span></li>
+    <li><b>pending 중 stop:</b> 세대 카운터 <code>playEpoch</code> — resume을 기다리는 사이 stop()이 오면 epoch가 바뀌어 pending play가 무효화된다. <span class="src">transport.ts:12, 31, 43</span></li>
+    <li><b>play()의 반환값은 "실제로 시작됐는가"</b> — store는 true일 때만 <code>isPlaying</code>을 올린다. resume 실패 시 UI가 거짓 재생 상태로 가지 않는다. <span class="src">transport.ts:21-22 · useTransportStore.ts:20-27</span></li>
+    <li><b>stop = 곡 처음으로</b> (<code>stoppedBeats = 0</code>). pause는 현재 범위 밖. <span class="src">transport.ts:46</span></li>
+  </ul>
+
+<h2 class="sec" id="ae-metro">메트로놈 — lookahead 스케줄링</h2>
+  <p class="lead">"A Tale of Two Clocks" 패턴. <b>setInterval은 스케줄할 시점만 정하고, 클릭의 정확한 타이밍은 AudioContext 클럭으로 예약</b>한다. JS 타이머의 지터가 소리 타이밍에 영향을 주지 않는다. <span class="src">metronome.ts:1-4</span></p>
+
+  <figure class="fig">
+    <svg viewBox="0 0 960 330" xmlns="http://www.w3.org/2000/svg" font-family="Pretendard,'Malgun Gothic',sans-serif">
+      <defs>
+        <marker id="ar4" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M0 0 L10 5 L0 10 z" fill="#445063"/>
+        </marker>
+      </defs>
+      <rect width="960" height="330" fill="#ffffff"/>
+
+      <!-- JS timer lane -->
+      <text x="40" y="66" font-size="13" font-weight="700" fill="#a86a00">JS 타이머 레인</text>
+      <text x="40" y="86" font-size="11.5" fill="#7a8599">setInterval 25ms (지터 있음)</text>
+      <line x1="230" y1="76" x2="920" y2="76" stroke="#e3e7ee" stroke-width="2"/>
+      <g fill="#a86a00">
+        <rect x="250" y="66" width="4" height="20" rx="2"/>
+        <rect x="330" y="66" width="4" height="20" rx="2"/>
+        <rect x="415" y="66" width="4" height="20" rx="2"/>
+        <rect x="492" y="66" width="4" height="20" rx="2"/>
+        <rect x="578" y="66" width="4" height="20" rx="2"/>
+        <rect x="655" y="66" width="4" height="20" rx="2"/>
+        <rect x="740" y="66" width="4" height="20" rx="2"/>
+        <rect x="820" y="66" width="4" height="20" rx="2"/>
+      </g>
+      <text x="252" y="56" font-size="11" fill="#a86a00">tick</text>
+
+      <!-- lookahead window at one tick -->
+      <rect x="415" y="120" width="240" height="40" rx="6" fill="#fff7e6" stroke="#f0c36d" stroke-width="1.6"/>
+      <text x="535" y="145" text-anchor="middle" font-size="12" fill="#a86a00" font-weight="600">lookahead 창 = now + 0.1s</text>
+      <line x1="417" y1="120" x2="417" y2="86" stroke="#f0c36d" stroke-width="1.4" stroke-dasharray="4 3"/>
+      <text x="668" y="146" font-size="11.5" fill="#7a8599">창 안에 드는 beat를 전부 예약</text>
+
+      <!-- audio clock lane -->
+      <text x="40" y="226" font-size="13" font-weight="700" fill="#1f4ea1">오디오 클럭 레인</text>
+      <text x="40" y="246" font-size="11.5" fill="#7a8599">AudioContext.currentTime (정밀)</text>
+      <line x1="230" y1="236" x2="920" y2="236" stroke="#e3e7ee" stroke-width="2"/>
+      <!-- scheduled clicks (beats) -->
+      <g>
+        <circle cx="300" cy="236" r="9" fill="#1f4ea1"/>
+        <circle cx="440" cy="236" r="7" fill="#9cc4f0"/>
+        <circle cx="580" cy="236" r="7" fill="#9cc4f0"/>
+        <circle cx="720" cy="236" r="7" fill="#9cc4f0"/>
+        <circle cx="860" cy="236" r="9" fill="#1f4ea1"/>
+      </g>
+      <text x="300" y="270" text-anchor="middle" font-size="11.5" fill="#1f4ea1" font-weight="700">accent 1000Hz</text>
+      <text x="580" y="270" text-anchor="middle" font-size="11.5" fill="#445063">클릭 760Hz (beat % 4 ≠ 0)</text>
+      <text x="860" y="270" text-anchor="middle" font-size="11.5" fill="#1f4ea1" font-weight="700">마디머리 (beat % 4 = 0)</text>
+
+      <!-- schedule arrows -->
+      <line x1="475" y1="160" x2="440" y2="224" stroke="#445063" stroke-width="1.6" marker-end="url(#ar4)"/>
+      <line x1="560" y1="160" x2="580" y2="224" stroke="#445063" stroke-width="1.6" marker-end="url(#ar4)"/>
+      <text x="530" y="196" font-size="11.5" fill="#445063">osc.start(ctxTimeAtBeat(n)) 로 예약</text>
+
+      <text x="40" y="310" font-size="11.5" fill="#7a8599" font-family="Consolas,monospace">근거: metronome.ts:8-15 (상수) · :32-39 (tick 루프: beatToCtxTime(nextBeat) &lt; now+0.1s 인 동안 예약) · :54-65 (scheduleClick)</text>
+    </svg>
+    <figcaption>그림 4. lookahead 스케줄링. 25ms마다 깨어나 "앞으로 0.1초 안에 올 beat"를 오디오 클럭에 예약한다. lookahead(0.1s)가 tick 간격(25ms)보다 충분히 길어 타이머 스로틀링에도 견딘다.</figcaption>
+  </figure>
+
+  <div class="scroll"><table class="tbl">
+    <thead><tr><th style="width:200px">상수</th><th style="width:110px">값</th><th>의미</th></tr></thead>
+    <tbody>
+      <tr><td><code>TICK_INTERVAL_MS</code></td><td>25ms</td><td>스케줄 판단 주기 (소리 타이밍과 무관)</td></tr>
+      <tr><td><code>LOOKAHEAD_SEC</code></td><td>0.1s</td><td>예약 선행 구간 — tick보다 충분히 길어 스로틀링 내성</td></tr>
+      <tr><td><code>ACCENT_FREQ_HZ</code> / <code>CLICK_FREQ_HZ</code></td><td>1000 / 760</td><td>마디머리(beat % 4 == 0) 악센트 구분. 4/4 고정은 TODO <span class="src">metronome.ts:14-15</span></td></tr>
+      <tr><td><code>CLICK_DURATION_SEC</code></td><td>0.03s</td><td>클릭당 1회용 OscillatorNode + 지수 감쇠 envelope <span class="src">metronome.ts:54-65</span></td></tr>
+    </tbody>
+  </table></div>
+  <div class="note"><span class="t">무할당 원칙과의 관계</span> 클릭당 OscillatorNode 생성은 Web Audio의 1회용 노드 모델 그대로다. 무할당 원칙(Gotchas)은 rAF 등 고빈도 루프 대상이며, 이 tick은 25ms 간격·클릭당 1회라 대상이 아니다. 반면 rAF 경로인 <code>getPositionBeats()</code>는 숫자만 반환하고 할당이 없다. <span class="src">metronome.ts:3-4 · transport.ts:61-65</span> stop 시에는 bus GainNode를 disconnect해 이미 예약된 미래 클릭까지 함께 끊는다. <span class="src">metronome.ts:47-51</span></div>
+
+    </main>
+  </div>
+</section>
+
+<!-- ================================================================ 탭 4 UI·상태 -->
+<section class="tabpanel" id="tab-t4">
+  <div class="tabgrid">
+    <nav class="toc">
+      <div class="toc-title">UI·상태</div>
+      <div class="toc-sub">zustand 이중 store와 리렌더 최소화</div>
+      <a href="#ui-stores">상태 설계 — store 2개</a>
+      <a href="#ui-flow">데이터 흐름도</a>
+      <a href="#ui-playhead">플레이헤드 — store 우회</a>
+      <a href="#ui-timeline">타임라인 렌더링</a>
+      <a href="#ui-transport">TransportControls</a>
+    </nav>
+    <main class="doc">
+
+<h2 class="sec" id="ui-stores">상태 설계 — store 2개</h2>
+  <p class="lead">전역 상태는 zustand store 2개다. 핵심 결정은 <b>"재생 위치(고빈도)는 어떤 store에도 넣지 않는다"</b>이다.</p>
+  <div class="cards">
+    <div class="card">
+      <h3>useProjectStore</h3>
+      <div class="kv"><span class="k">내용</span><span>프로젝트 도큐먼트 (tracks, clips, bpm, timeSignature, key)</span></div>
+      <div class="kv"><span class="k">갱신 빈도</span><span>저빈도 (편집 시)</span></div>
+      <div class="kv"><span class="k">진실</span><span>project.json의 bpm이 진실 — setProject 시 transport로 동기화</span></div>
+      <div class="kv"><span class="k">근거</span><span class="src">useProjectStore.ts:11-26</span></div>
+    </div>
+    <div class="card">
+      <h3>useTransportStore</h3>
+      <div class="kv"><span class="k">내용</span><span>bpm, isPlaying — <b>저빈도 transport 상태만</b></span></div>
+      <div class="kv"><span class="k">원칙</span><span>액션이 유일한 진입점: 엔진 호출이 성공한 뒤에만 상태 갱신</span></div>
+      <div class="kv"><span class="k">제외</span><span>재생 위치 — 엔진이 직접 관리, UI는 rAF로 읽음</span></div>
+      <div class="kv"><span class="k">근거</span><span class="src">useTransportStore.ts:5-8</span></div>
+    </div>
+  </div>
+
+<h2 class="sec" id="ui-flow">데이터 흐름도</h2>
+  <figure class="fig">
+    <svg viewBox="0 0 960 560" xmlns="http://www.w3.org/2000/svg" font-family="Pretendard,'Malgun Gothic',sans-serif">
+      <defs>
+        <marker id="ar5" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M0 0 L10 5 L0 10 z" fill="#445063"/>
+        </marker>
+        <marker id="ar5r" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M0 0 L10 5 L0 10 z" fill="#c0392b"/>
+        </marker>
+        <marker id="ar5b" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M0 0 L10 5 L0 10 z" fill="#1f4ea1"/>
+        </marker>
+      </defs>
+      <rect width="960" height="560" fill="#ffffff"/>
+
+      <!-- audio engine -->
+      <rect x="40" y="40" width="400" height="150" rx="10" fill="#eaf1fb" stroke="#1f4ea1" stroke-width="2.5"/>
+      <text x="240" y="70" text-anchor="middle" font-size="16" font-weight="700" fill="#1f4ea1">audio-engine (모듈 싱글턴, React 밖)</text>
+      <text x="240" y="96" text-anchor="middle" font-size="12.5" fill="#445063">transport.ts — anchor + bpm + playing</text>
+      <text x="240" y="118" text-anchor="middle" font-size="12.5" fill="#445063">metronome.ts — lookahead 예약</text>
+      <text x="240" y="140" text-anchor="middle" font-size="12.5" fill="#445063">audioContext.ts — AudioContext 싱글턴</text>
+      <text x="240" y="168" text-anchor="middle" font-size="12" fill="#7a8599">zustand를 모른다 (역방향 의존 없음)</text>
+
+      <!-- transport store -->
+      <rect x="530" y="40" width="390" height="110" rx="10" fill="#f7f8fa" stroke="#445063" stroke-width="2"/>
+      <text x="725" y="70" text-anchor="middle" font-size="15" font-weight="700" fill="#1c1f24">useTransportStore (zustand)</text>
+      <text x="725" y="94" text-anchor="middle" font-size="12.5" fill="#445063">bpm · isPlaying (저빈도만)</text>
+      <text x="725" y="116" text-anchor="middle" font-size="12" fill="#7a8599">액션: play()/stop()/setBpm() → 엔진 호출 성공 후 set()</text>
+
+      <!-- project store -->
+      <rect x="530" y="200" width="390" height="100" rx="10" fill="#f7f8fa" stroke="#445063" stroke-width="2"/>
+      <text x="725" y="230" text-anchor="middle" font-size="15" font-weight="700" fill="#1c1f24">useProjectStore (zustand)</text>
+      <text x="725" y="254" text-anchor="middle" font-size="12.5" fill="#445063">project (tracks·clips·bpm·박자·키) — 데모 fixture</text>
+      <text x="725" y="276" text-anchor="middle" font-size="12" fill="#7a8599">setProject 시 project.bpm → transport 동기화</text>
+
+      <!-- components -->
+      <rect x="40" y="360" width="270" height="130" rx="10" fill="#fff" stroke="#e3e7ee" stroke-width="2"/>
+      <text x="175" y="390" text-anchor="middle" font-size="14.5" font-weight="700" fill="#1c1f24">TransportControls</text>
+      <text x="175" y="414" text-anchor="middle" font-size="12" fill="#445063">재생/정지 버튼 · BPM 입력(draft)</text>
+      <text x="175" y="436" text-anchor="middle" font-size="12" fill="#445063">selector로 값 하나씩 구독</text>
+      <text x="175" y="458" text-anchor="middle" font-size="11.5" fill="#7a8599">TransportControls.tsx:6-10</text>
+
+      <rect x="350" y="360" width="270" height="130" rx="10" fill="#fff" stroke="#e3e7ee" stroke-width="2"/>
+      <text x="485" y="390" text-anchor="middle" font-size="14.5" font-weight="700" fill="#1c1f24">Timeline / TrackLane(memo)</text>
+      <text x="485" y="414" text-anchor="middle" font-size="12" fill="#445063">tracks·clips·박자 selector 구독</text>
+      <text x="485" y="436" text-anchor="middle" font-size="12" fill="#445063">transport 상태 변경에 면역</text>
+      <text x="485" y="458" text-anchor="middle" font-size="11.5" fill="#7a8599">Timeline.tsx:30-32 · TrackLane.tsx:10-11</text>
+
+      <rect x="660" y="360" width="260" height="130" rx="10" fill="#fdecec" stroke="#c0392b" stroke-width="2"/>
+      <text x="790" y="390" text-anchor="middle" font-size="14.5" font-weight="700" fill="#c0392b">Playhead</text>
+      <text x="790" y="414" text-anchor="middle" font-size="12" fill="#445063">isPlaying(저빈도)만 구독</text>
+      <text x="790" y="436" text-anchor="middle" font-size="12" fill="#c0392b" font-weight="600">위치는 store 우회 — rAF 직접 읽기</text>
+      <text x="790" y="458" text-anchor="middle" font-size="11.5" fill="#7a8599">Playhead.tsx:6-27</text>
+
+      <!-- arrows -->
+      <line x1="530" y1="95" x2="440" y2="95" stroke="#445063" stroke-width="2" marker-end="url(#ar5)"/>
+      <text x="485" y="84" text-anchor="middle" font-size="11.5" fill="#445063">액션이 엔진 호출</text>
+
+      <line x1="620" y1="200" x2="620" y2="150" stroke="#445063" stroke-width="1.8" marker-end="url(#ar5)"/>
+      <text x="628" y="180" font-size="11.5" fill="#445063">bpm 동기화 (setBpm)</text>
+
+      <line x1="175" y1="360" x2="560" y2="140" stroke="#445063" stroke-width="1.8" marker-end="url(#ar5)"/>
+      <text x="300" y="278" font-size="11.5" fill="#445063" transform="rotate(-27 300 278)">구독(selector) + 액션 호출</text>
+
+      <line x1="485" y1="360" x2="620" y2="300" stroke="#445063" stroke-width="1.8" marker-end="url(#ar5)"/>
+      <line x1="790" y1="360" x2="770" y2="150" stroke="#445063" stroke-width="1.8" marker-end="url(#ar5)"/>
+      <text x="800" y="330" font-size="11.5" fill="#445063">isPlaying 구독</text>
+
+      <!-- rAF bypass -->
+      <path d="M 660 470 C 400 545 150 520 130 190" fill="none" stroke="#c0392b" stroke-width="2.5" stroke-dasharray="7 5" marker-end="url(#ar5r)"/>
+      <text x="380" y="536" font-size="12.5" font-weight="700" fill="#c0392b">rAF 매 프레임: getPositionBeats() → el.style.transform (React 리렌더 0회)</text>
+    </svg>
+    <figcaption>그림 5. 렌더러 데이터 흐름. 실선 = zustand 구독/액션(React 경로), 빨간 점선 = 플레이헤드의 store 우회 경로. 오디오 엔진은 React·zustand에 역방향 의존이 없다.</figcaption>
+  </figure>
+
+<h2 class="sec" id="ui-playhead">플레이헤드 — 고빈도 갱신의 store 우회</h2>
+  <p class="lead">재생 위치는 초당 60회 갱신된다. 이걸 zustand에 넣으면 구독 컴포넌트 전체가 60fps로 리렌더된다. 대신 <b>엔진에서 rAF로 직접 읽어 DOM <code>transform</code>만 갱신</b>한다 — 재생 중에도 React 리렌더가 0회다. <span class="src">Playhead.tsx:6-7</span></p>
+  <pre class="frame">// Playhead.tsx:21-26 — rAF 루프 (effect는 외부 시스템 동기화의 정당한 사용처)
+const tick = () =&gt; {
+  el.style.transform = `translateX(${beatsToPx(getPositionBeats())}px)`;
+  rafId = requestAnimationFrame(tick);
+};</pre>
+  <ul>
+    <li>구독은 저빈도 <code>isPlaying</code> 하나 — 재생 시작/정지 시에만 effect가 rAF 루프를 켜고 끈다. cleanup에서 <code>cancelAnimationFrame</code>. <span class="src">Playhead.tsx:13-27</span></li>
+    <li>rAF 경로의 <code>getPositionBeats()</code>는 숫자만 반환한다 — 객체/배열 할당 없음(GC 스파이크 = 오디오 글리치 방지). <span class="src">transport.ts:61-65</span></li>
+  </ul>
+
+<h2 class="sec" id="ui-timeline">타임라인 렌더링</h2>
+  <h3 class="subsection">컴포넌트 구성</h3>
+  <div class="diagram">Timeline (Timeline.tsx)
+ ├─ TimelineRuler       마디/비트 눈금 (totalBars, beatsPerBar)
+ ├─ TrackLane × N       memo — track/clips 참조 불변이면 리렌더 스킵
+ │   └─ ClipBlock × M   left = beatsToPx(startBeat), width = beatsToPx(lengthBeats)
+ └─ Playhead            절대 위치 오버레이, rAF transform</div>
+  <h3 class="subsection">좌표계</h3>
+  <ul>
+    <li><b>가로축 = beat.</b> <code>PX_PER_BEAT = 32</code>로 픽셀 변환. 클립 위치·길이도 beat 단위라 BPM 변경에도 화면·데이터가 안 흔들린다. <span class="src">timelineGeometry.ts:4-11 · project.ts:65-66</span></li>
+    <li>레이아웃 상수(<code>TRACK_HEADER_WIDTH</code> 140, <code>LANE_HEIGHT</code> 56, <code>RULER_HEIGHT</code> 28, <code>MIN_BARS</code> 16)는 TS가 진실이고, CSS 변수(<code>--timeline-*</code>)로 주입해 TS/CSS 이중 정의를 막는다. <span class="src">Timeline.tsx:22-27</span></li>
+    <li>전체 폭 = 헤더 + max(MIN_BARS, 마지막 클립 끝 마디 + 2마디 여유). <span class="src">Timeline.tsx:44-52</span></li>
+    <li>클립은 <code>clipsByTrack</code> Map으로 트랙별 그룹핑(useMemo). 빈 트랙에는 모듈 상수 <code>EMPTY_CLIPS</code>를 넘겨 매 렌더 새 배열 생성을 피한다 — memo TrackLane의 참조 동등성 유지. <span class="src">Timeline.tsx:20, 34-42, 72</span></li>
+    <li>빈 상태(트랙 0개) 처리 존재. <span class="src">Timeline.tsx:54-60</span></li>
+  </ul>
+  <div class="note"><span class="t">MVP 단순화</span> beat = 1/4음표 가정(박자 분모 ≠ 4 처리는 후속). 데모 프로젝트는 4/4. <span class="src">Timeline.tsx:49-50 · metronome.ts:14</span></div>
+
+<h2 class="sec" id="ui-transport">TransportControls — draft 입력 패턴</h2>
+  <ul>
+    <li>BPM 입력은 <b>타이핑 중 draft(지역 state)</b> → blur/Enter에서 commit. 일시적 UI 상태는 store에 올리지 않는 원칙 그대로. <span class="src">TransportControls.tsx:11</span></li>
+    <li>commit 시: 빈 입력은 취소(∵ <code>Number('') === 0</code>이 MIN으로 clamp되는 것 방지), 무효 입력은 롤백, 유효하면 setBpm 후 <b>clamp된 결과를 draft에 되반영</b>. <span class="src">TransportControls.tsx:13-25</span></li>
+    <li>selector로 값을 하나씩 꺼낸다 — 객체 리터럴 selector 함정 없음. <span class="src">TransportControls.tsx:6-10</span></li>
+  </ul>
+
+    </main>
+  </div>
+</section>
+
+<!-- ================================================================ 탭 5 AI 서비스 -->
+<section class="tabpanel" id="tab-t5">
+  <div class="tabgrid">
+    <nav class="toc">
+      <div class="toc-title">AI 서비스</div>
+      <div class="toc-sub">생성 job의 일생</div>
+      <a href="#svc-shape">구성</a>
+      <a href="#svc-seq">생성 요청 시퀀스</a>
+      <a href="#svc-state">job 상태 머신</a>
+      <a href="#svc-cancel">취소 의미론</a>
+      <a href="#svc-mock">mock 생성기</a>
+    </nav>
+    <main class="doc">
+
+<h2 class="sec" id="svc-shape">구성</h2>
+  <p class="lead">FastAPI 앱 하나(<code>service/app/main.py</code>)에 REST + WebSocket 라우터가 붙는다. 생성은 <b>비동기 job</b>으로 처리된다: 등록 즉시 202를 돌려주고, 진행률·결과는 WS로 스트리밍한다.</p>
+  <div class="scroll"><table class="tbl">
+    <thead><tr><th style="width:230px">모듈</th><th>역할</th></tr></thead>
+    <tbody>
+      <tr><td><code>api/routes.py</code></td><td>엔드포인트 5개 + WS 1개. 계약의 HTTP 표면</td></tr>
+      <tr><td><code>api/schemas.py</code></td><td>pydantic wire 스키마 — camelCase alias, <code>extra="forbid"</code>, None 생략 직렬화</td></tr>
+      <tr><td><code>api/jobs.py</code></td><td><code>JobManager</code> — in-memory job 저장소 + asyncio task 실행 + WS 구독 발행. <b>동시 생성 1개</b>(busy면 409) <span class="src">jobs.py:57-59 · routes.py:40-44</span></td></tr>
+      <tr><td><code>generation/music_generator.py</code></td><td>오디오 mock — stdlib로 합성 톤 WAV 생성 (실모델 교체 시에도 시그니처 유지)</td></tr>
+      <tr><td><code>generation/midi_generator.py</code></td><td>MIDI mock</td></tr>
+      <tr><td><code>agent/ · analysis/ · models/</code></td><td>스텁 — 실모델 단계에서 생성 라우팅을 agent/로 이관 예정 <span class="src">jobs.py:3-4</span></td></tr>
+    </tbody>
+  </table></div>
+
+<h2 class="sec" id="svc-seq">생성 요청 시퀀스</h2>
+  <figure class="fig">
+    <svg viewBox="0 0 960 620" xmlns="http://www.w3.org/2000/svg" font-family="Pretendard,'Malgun Gothic',sans-serif">
+      <defs>
+        <marker id="ar6" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M0 0 L10 5 L0 10 z" fill="#1f4ea1"/>
+        </marker>
+        <marker id="ar6g" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M0 0 L10 5 L0 10 z" fill="#1a7f4b"/>
+        </marker>
+        <marker id="ar6d" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M0 0 L10 5 L0 10 z" fill="#445063"/>
+        </marker>
+      </defs>
+      <rect width="960" height="620" fill="#ffffff"/>
+
+      <!-- lifelines -->
+      <rect x="60" y="30" width="200" height="44" rx="8" fill="#eaf1fb" stroke="#1f4ea1" stroke-width="2"/>
+      <text x="160" y="58" text-anchor="middle" font-size="14" font-weight="700" fill="#1f4ea1">Renderer</text>
+      <rect x="400" y="30" width="200" height="44" rx="8" fill="#f1fbf5" stroke="#1a7f4b" stroke-width="2"/>
+      <text x="500" y="58" text-anchor="middle" font-size="14" font-weight="700" fill="#1a7f4b">FastAPI (routes)</text>
+      <rect x="700" y="30" width="220" height="44" rx="8" fill="#f7f8fa" stroke="#445063" stroke-width="2"/>
+      <text x="810" y="58" text-anchor="middle" font-size="14" font-weight="700" fill="#1c1f24">JobManager + 생성기</text>
+
+      <line x1="160" y1="74" x2="160" y2="590" stroke="#e3e7ee" stroke-width="2"/>
+      <line x1="500" y1="74" x2="500" y2="590" stroke="#e3e7ee" stroke-width="2"/>
+      <line x1="810" y1="74" x2="810" y2="590" stroke="#e3e7ee" stroke-width="2"/>
+
+      <!-- 1 POST -->
+      <line x1="160" y1="110" x2="500" y2="110" stroke="#1f4ea1" stroke-width="2" marker-end="url(#ar6)"/>
+      <text x="330" y="99" text-anchor="middle" font-size="12.5" font-weight="600" fill="#1f4ea1">① POST /generate {prompt, output, targetTrackId, context}</text>
+
+      <line x1="500" y1="140" x2="810" y2="140" stroke="#445063" stroke-width="2" marker-end="url(#ar6d)"/>
+      <text x="655" y="129" text-anchor="middle" font-size="12" fill="#445063">busy 아니면 job 등록 + asyncio task 시작 (jobs.py:61-67)</text>
+
+      <line x1="500" y1="176" x2="160" y2="176" stroke="#1a7f4b" stroke-width="2" marker-end="url(#ar6g)"/>
+      <text x="330" y="165" text-anchor="middle" font-size="12.5" font-weight="600" fill="#1a7f4b">② 202 {jobId, status:"queued", ...} (busy면 409 SERVICE_BUSY)</text>
+
+      <!-- 2 WS -->
+      <line x1="160" y1="222" x2="500" y2="222" stroke="#1f4ea1" stroke-width="2" marker-end="url(#ar6)"/>
+      <text x="330" y="211" text-anchor="middle" font-size="12.5" font-weight="600" fill="#1f4ea1">③ WS 접속 /ws/jobs/{jobId}</text>
+      <line x1="500" y1="252" x2="160" y2="252" stroke="#1a7f4b" stroke-width="2" marker-end="url(#ar6g)"/>
+      <text x="330" y="241" text-anchor="middle" font-size="12" fill="#1a7f4b">접속 즉시 현재 상태 스냅샷 1회 송신 (routes.py:88-90, 유실 창 없음)</text>
+
+      <!-- progress loop -->
+      <rect x="120" y="286" width="740" height="120" rx="8" fill="#f7f8fa" stroke="#e3e7ee" stroke-width="1.6"/>
+      <text x="140" y="310" font-size="12.5" font-weight="700" fill="#7a8599">진행 루프 (생성 완료까지)</text>
+      <line x1="810" y1="336" x2="500" y2="336" stroke="#445063" stroke-width="1.8" marker-end="url(#ar6d)"/>
+      <text x="655" y="325" text-anchor="middle" font-size="12" fill="#445063">on_progress(p, stage) → 구독 큐 발행 (jobs.py:90-92)</text>
+      <line x1="500" y1="372" x2="160" y2="372" stroke="#1a7f4b" stroke-width="1.8" marker-end="url(#ar6g)"/>
+      <text x="330" y="361" text-anchor="middle" font-size="12" fill="#1a7f4b">{type:"progress", progress: 0~1, stage: loading_model→generating→encoding}</text>
+
+      <!-- terminal -->
+      <line x1="810" y1="442" x2="500" y2="442" stroke="#445063" stroke-width="2" marker-end="url(#ar6d)"/>
+      <text x="655" y="431" text-anchor="middle" font-size="12" fill="#445063">결과 바이트 → service/staging/{jobId}.wav|.mid 저장 (jobs.py:110-112)</text>
+      <line x1="500" y1="478" x2="160" y2="478" stroke="#1a7f4b" stroke-width="2" marker-end="url(#ar6g)"/>
+      <text x="330" y="467" text-anchor="middle" font-size="12.5" font-weight="600" fill="#1a7f4b">④ {type:"succeeded", result} 송신 후 서버가 WS를 닫는다</text>
+
+      <!-- fetch result -->
+      <line x1="160" y1="530" x2="500" y2="530" stroke="#1f4ea1" stroke-width="2" marker-end="url(#ar6)"/>
+      <text x="330" y="519" text-anchor="middle" font-size="12.5" font-weight="600" fill="#1f4ea1">⑤ GET /jobs/{jobId}/result → audio/wav 또는 audio/midi 바이트</text>
+      <line x1="500" y1="562" x2="160" y2="562" stroke="#1a7f4b" stroke-width="2" marker-end="url(#ar6g)"/>
+      <text x="330" y="551" text-anchor="middle" font-size="12" fill="#1a7f4b">succeeded 상태에서만 200, 아니면 409 (routes.py:54-61)</text>
+
+      <text x="60" y="608" font-size="11.5" fill="#7a8599" font-family="Consolas,monospace">근거: routes.py:35-103 · jobs.py:61-124 · WS 단절 후 복구는 GET /jobs/{jobId} 스냅샷 (routes.py:48-51)</text>
+    </svg>
+    <figcaption>그림 6. 생성 job 시퀀스. 202 즉답 → WS 진행률 스트리밍 → 종료 메시지 → 결과 바이트 별도 GET. 결과가 "클립"으로 타임라인에 올라가는 수락 단계는 렌더러 측 미구현이다.</figcaption>
+  </figure>
+
+<h2 class="sec" id="svc-state">job 상태 머신</h2>
+  <figure class="fig">
+    <svg viewBox="0 0 960 300" xmlns="http://www.w3.org/2000/svg" font-family="Pretendard,'Malgun Gothic',sans-serif">
+      <defs>
+        <marker id="ar7" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M0 0 L10 5 L0 10 z" fill="#445063"/>
+        </marker>
+      </defs>
+      <rect width="960" height="300" fill="#ffffff"/>
+
+      <rect x="50" y="110" width="150" height="56" rx="28" fill="#f7f8fa" stroke="#7a8599" stroke-width="2"/>
+      <text x="125" y="144" text-anchor="middle" font-size="14.5" font-weight="700" fill="#445063">queued</text>
+
+      <rect x="300" y="110" width="150" height="56" rx="28" fill="#eaf1fb" stroke="#1f4ea1" stroke-width="2"/>
+      <text x="375" y="144" text-anchor="middle" font-size="14.5" font-weight="700" fill="#1f4ea1">running</text>
+
+      <rect x="600" y="34" width="180" height="56" rx="28" fill="#f1fbf5" stroke="#1a7f4b" stroke-width="2.5"/>
+      <text x="690" y="68" text-anchor="middle" font-size="14.5" font-weight="700" fill="#1a7f4b">succeeded</text>
+
+      <rect x="600" y="122" width="180" height="56" rx="28" fill="#fdecec" stroke="#c0392b" stroke-width="2.5"/>
+      <text x="690" y="156" text-anchor="middle" font-size="14.5" font-weight="700" fill="#c0392b">failed</text>
+
+      <rect x="600" y="210" width="180" height="56" rx="28" fill="#fff7e6" stroke="#a86a00" stroke-width="2.5"/>
+      <text x="690" y="244" text-anchor="middle" font-size="14.5" font-weight="700" fill="#a86a00">cancelled</text>
+
+      <line x1="200" y1="138" x2="300" y2="138" stroke="#445063" stroke-width="2" marker-end="url(#ar7)"/>
+      <text x="250" y="127" text-anchor="middle" font-size="11.5" fill="#445063">_run 시작</text>
+
+      <line x1="450" y1="122" x2="600" y2="70" stroke="#445063" stroke-width="2" marker-end="url(#ar7)"/>
+      <text x="516" y="80" font-size="11.5" fill="#445063">생성 완료 + 파일 저장</text>
+      <line x1="450" y1="145" x2="600" y2="150" stroke="#445063" stroke-width="2" marker-end="url(#ar7)"/>
+      <text x="500" y="164" font-size="11.5" fill="#445063">예외 → GENERATION_FAILED</text>
+      <line x1="450" y1="160" x2="600" y2="230" stroke="#445063" stroke-width="2" marker-end="url(#ar7)"/>
+      <text x="472" y="212" font-size="11.5" fill="#445063">task.cancel / cancelled_flag</text>
+
+      <rect x="820" y="118" width="120" height="64" rx="8" fill="#f7f8fa" stroke="#e3e7ee"/>
+      <text x="880" y="144" text-anchor="middle" font-size="12" font-weight="700" fill="#445063">TERMINAL</text>
+      <text x="880" y="166" text-anchor="middle" font-size="10.5" fill="#7a8599">종료 상태는 최종.</text>
+
+      <text x="50" y="286" font-size="11.5" fill="#7a8599" font-family="Consolas,monospace">근거: jobs.py:17 (TERMINAL) · :94-123 (_run 전이) · 취소는 멱등 — 종료 후 cancel은 already_finished (jobs.py:70-71)</text>
+    </svg>
+    <figcaption>그림 7. job 상태 머신. queued → running → {succeeded | failed | cancelled}. 종료 상태에 도달하면 되돌아가지 않는다.</figcaption>
+  </figure>
+
+<h2 class="sec" id="svc-cancel">취소 의미론 — "생성은 항상 취소 가능해야 한다"</h2>
+  <p class="lead">수십 초짜리 생성 중에도 사용자는 작업을 계속할 수 있어야 한다는 것이 AI DAW의 전제다. 취소는 두 갈래로 구현돼 있다. <span class="src">jobs.py:69-75</span></p>
+  <ul>
+    <li><b><code>task.cancel()</code></b> — mock의 주 취소 경로. <code>asyncio.sleep</code>을 즉시 끊는다.</li>
+    <li><b><code>cancelled_flag</code> (asyncio.Event)</b> — 협조적 플래그. 실모델이 executor 스레드에서 돌 때를 대비한 계약. mock도 beat 경계마다 체크포인트를 두어 동일한 취소 의미론을 갖는다. <span class="src">music_generator.py:42-44</span></li>
+    <li><b>WS 단절 ≠ 취소.</b> 취소는 오직 <code>POST /jobs/{id}/cancel</code>. 연결이 끊겨도 생성은 계속되고, 재접속하면 <code>GET /jobs/{id}</code> 스냅샷으로 복구한다. <span class="src">routes.py:100-101 · schemas.py:147</span></li>
+    <li><b>멱등</b> — 이미 종료된 job의 취소는 <code>already_finished</code> no-op. <span class="src">jobs.py:70-71</span></li>
+  </ul>
+  <div class="note"><span class="t">WS 유실 창 없음</span> 구독 등록 → 첫 스냅샷 송신 준비 사이에 <code>await</code>가 없다(asyncio는 await 지점에서만 선점). 등록 이후의 종료 이벤트는 큐로, 이전 종료는 스냅샷으로 반드시 전달된다. <span class="src">routes.py:77-91</span></div>
+
+<h2 class="sec" id="svc-mock">mock 생성기 — 계약을 먼저 굳히는 장치</h2>
+  <p class="lead">실제 AI 모델 없이 <b>생성 계약 전체(요청→진행률→결과→취소)가 end-to-end로 동작</b>하도록, stdlib만으로 만든 mock이 들어 있다. 실모델(MusicGen 계열, 라이선스 확인 후)로 교체돼도 <code>generate()</code> 시그니처는 유지된다. <span class="src">music_generator.py:1-6</span></p>
+  <ul>
+    <li><b>오디오 mock:</b> 컨텍스트의 키(tonic)를 옥타브 2 주파수로, BPM을 beat당 펄스 길이로 반영한 지수 감쇠 톤 WAV — <b>bpm이 귀로 확인된다</b>. beat당 0.25s 지연으로 진행률 스트리밍을 시뮬레이션. <span class="src">music_generator.py:36-52</span></li>
+    <li>진행 단계: <code>loading_model(0.0) → generating(0.1~0.9) → encoding(0.95)</code>. <span class="src">music_generator.py:33, 51, 54</span></li>
+    <li><code>lengthBeats</code>에 계약상 상한이 없어 mock 폭주 방지용 <code>MAX_MOCK_BEATS = 64</code> clamp. <span class="src">generation/common.py:15-16</span></li>
+    <li>실패는 계약의 <code>failed</code> 경로로 정규화된다 (<code>GENERATION_FAILED</code> + 메시지). <span class="src">jobs.py:118-121</span></li>
+  </ul>
+  <div class="note warn"><span class="t">⚠ 알려진 한계 (코드 주석에 명시)</span> <code>_jobs</code> 딕셔너리와 <code>staging/</code> 파일은 무한 누적된다 — 정리 정책은 계약 TODO. <span class="src">jobs.py:4</span></div>
+
+    </main>
+  </div>
+</section>
+
+<!-- ================================================================ 탭 6 계약 -->
+<section class="tabpanel" id="tab-t6">
+  <div class="tabgrid">
+    <nav class="toc">
+      <div class="toc-title">계약 (API)</div>
+      <div class="toc-sub">renderer ↔ service가 약속한 것</div>
+      <a href="#ct-rule">3중 동기화 규칙</a>
+      <a href="#ct-wire">wire 규칙</a>
+      <a href="#ct-endpoints">엔드포인트</a>
+      <a href="#ct-ws">WS 메시지</a>
+      <a href="#ct-schema">project.json 스키마</a>
+    </nav>
+    <main class="doc">
+
+<h2 class="sec" id="ct-rule">3중 동기화 규칙</h2>
+  <p class="lead">계약은 <b>세 곳에 병렬로 존재</b>하고, 변경 시 <b>같은 커밋에서</b> 함께 갱신해야 한다. 이 규칙은 세 파일 모두의 머리 주석에 서로를 가리키는 형태로 박혀 있다.</p>
+  <div class="scroll"><table class="tbl">
+    <thead><tr><th style="width:110px">쪽</th><th>파일</th><th>형태</th></tr></thead>
+    <tbody>
+      <tr><td>renderer</td><td><code>renderer/src/app/types/project.ts</code> · <code>serviceContract.ts</code></td><td>TypeScript 타입 (camelCase, optional)</td></tr>
+      <tr><td>service</td><td><code>service/app/api/schemas.py</code></td><td>pydantic 모델 (snake_case 필드 + camelCase alias)</td></tr>
+      <tr><td>문서</td><td><code>docs/api/</code> (conventions·generation·project-schema)</td><td>사람이 읽는 계약 정의</td></tr>
+    </tbody>
+  </table></div>
+  <p>렌더러는 서비스의 내부 모듈 구조를 모르고, HTTP/WS 계약으로만 통신한다. 서비스도 프로젝트 폴더 경로를 모른다(v1은 메타데이터 스냅샷만 전송). <span class="src">CLAUDE.md 경계 규칙 · schemas.py:92-96</span></p>
+
+<h2 class="sec" id="ct-wire">wire 규칙</h2>
+  <div class="scroll"><table class="tbl">
+    <thead><tr><th style="width:250px">규칙</th><th>구현</th><th>근거</th></tr></thead>
+    <tbody>
+      <tr><td>JSON은 <b>camelCase</b></td><td>pydantic <code>alias_generator=to_camel</code> + <code>serialize_by_alias</code>. Python 내부는 snake_case</td><td><span class="src">schemas.py:13-24</span></td></tr>
+      <tr><td>미정의 필드 <b>거부</b></td><td><code>extra="forbid"</code> — 렌더러가 계약 밖 필드를 보내면 422. 스냅샷 빌더는 계약 필드만 화이트리스트로 구성해야 한다</td><td><span class="src">schemas.py:23 · serviceContract.ts:9-10</span></td></tr>
+      <tr><td>None은 null이 아니라 <b>생략</b></td><td>REST: <code>response_model_exclude_none=True</code> / WS: <code>to_wire()</code> 헬퍼. TS optional(<code>?</code>)과 일치</td><td><span class="src">schemas.py:27-33 · routes.py:35-37</span></td></tr>
+      <tr><td>단, 의미 있는 null은 <b>명시적 null</b></td><td><code>key</code>, <code>targetTrackId</code>는 "null 허용, 생략 불가" — 없음 자체가 정보다</td><td><span class="src">schemas.py:100, 123</span></td></tr>
+      <tr><td>ID 접두사</td><td><code>trk_</code>(트랙) · <code>clp_</code>(클립) · <code>job_</code>(생성 job)</td><td><span class="src">project.ts:33, 62 · jobs.py:63</span></td></tr>
+    </tbody>
+  </table></div>
+
+<h2 class="sec" id="ct-endpoints">엔드포인트</h2>
+  <div class="scroll"><table class="tbl">
+    <thead><tr><th style="width:280px">엔드포인트</th><th style="width:90px" class="center">상태</th><th>동작</th></tr></thead>
+    <tbody>
+      <tr><td><code>GET /health</code></td><td class="center"><span class="b ok">동작</span></td><td><code>{"status":"ok"}</code> — 렌더러 pingService 대상 <span class="src">main.py:17-19</span></td></tr>
+      <tr><td><code>POST /generate</code></td><td class="center"><span class="b ok">동작</span></td><td>202 + <code>GenerateJob</code>. busy면 409 <code>SERVICE_BUSY</code> (동시 생성 1개) <span class="src">routes.py:35-45</span></td></tr>
+      <tr><td><code>GET /jobs/{jobId}</code></td><td class="center"><span class="b ok">동작</span></td><td>상태 스냅샷 — WS 단절 후 복구용. 없으면 404 <span class="src">routes.py:48-51</span></td></tr>
+      <tr><td><code>GET /jobs/{jobId}/result</code></td><td class="center"><span class="b ok">동작</span></td><td>결과 바이트 (audio/wav | audio/midi). succeeded에서만 200, 아니면 409 <span class="src">routes.py:54-61</span></td></tr>
+      <tr><td><code>POST /jobs/{jobId}/cancel</code></td><td class="center"><span class="b ok">동작</span></td><td>202 + <code>{status: "cancelling" | "already_finished"}</code> — 멱등 <span class="src">routes.py:64-72</span></td></tr>
+      <tr><td><code>WS /ws/jobs/{jobId}</code></td><td class="center"><span class="b ok">동작</span></td><td>접속 즉시 스냅샷 1회 → 이벤트 스트림 → 종료 메시지 후 서버가 close. 없는 job은 code 4404 <span class="src">routes.py:75-103</span></td></tr>
+      <tr><td><code>POST /analyze</code></td><td class="center"><span class="b del">501</span></td><td>계약 미정의 — 사용 시점에 정의 <span class="src">routes.py:116-119</span></td></tr>
+    </tbody>
+  </table></div>
+
+  <h3 class="subsection">GenerateRequest (요청 본문)</h3>
+  <div class="scroll"><table class="tbl">
+    <thead><tr><th style="width:180px">필드</th><th style="width:260px">타입</th><th>의미</th></tr></thead>
+    <tbody>
+      <tr><td><code>prompt</code></td><td>string (1~2000자)</td><td>사용자 요청 텍스트</td></tr>
+      <tr><td><code>output.kind</code></td><td><code>'audio' | 'midi'</code></td><td>music_generator / midi_generator 라우팅 키</td></tr>
+      <tr><td><code>output.lengthBeats</code></td><td>number (&gt;0)</td><td>요청 길이 (beat)</td></tr>
+      <tr><td><code>targetTrackId</code></td><td>string | null</td><td>null = 새 트랙 제안. 명시적 null 필수</td></tr>
+      <tr><td><code>context</code></td><td><code>ProjectContextSnapshot</code></td><td><b>항상 필수</b> — bpm·박자·키·tracks·clips 전체. AI DAW의 전제 <span class="src">schemas.py:92-102, 120-125</span></td></tr>
+    </tbody>
+  </table></div>
+
+<h2 class="sec" id="ct-ws">WS 메시지 (서비스 → 렌더러)</h2>
+  <div class="scroll"><table class="tbl">
+    <thead><tr><th style="width:150px">type</th><th>페이로드</th><th>이후</th></tr></thead>
+    <tbody>
+      <tr><td><code>progress</code></td><td><code>progress?: 0~1</code> (없으면 indeterminate) · <code>stage: queued | loading_model | generating | encoding</code></td><td>스트림 계속</td></tr>
+      <tr><td><code>succeeded</code></td><td><code>result</code> — audio: <code>{durationSec, suggestedLengthBeats}</code> / midi: <code>{lengthBeats}</code>. 바이트는 별도 GET</td><td rowspan="3">종료 메시지 — 송신 후 서버가 WS를 닫는다 <span class="src">routes.py:94-99</span></td></tr>
+      <tr><td><code>failed</code></td><td><code>error: {code, message}</code> — code: <code>SERVICE_BUSY | MODEL_NOT_LOADED | INVALID_CONTEXT | GENERATION_FAILED</code></td></tr>
+      <tr><td><code>cancelled</code></td><td>—</td></tr>
+    </tbody>
+  </table></div>
+  <p><span class="src">serviceContract.ts:69-73 · schemas.py:162-192</span> — 양쪽 정의가 discriminated union(<code>type</code> 키)으로 대칭이다.</p>
+
+<h2 class="sec" id="ct-schema">project.json 스키마 (v1)</h2>
+  <p class="lead">저장 포맷이자 AI 컨텍스트 스냅샷의 원천. TS 정의가 렌더러의 진실이고, 서비스 스키마는 그 부분집합을 camelCase wire로 받는다. <span class="src">project.ts:71-81 · schemas.py:36-102</span></p>
+  <div class="scroll"><table class="tbl">
+    <thead><tr><th style="width:200px">필드</th><th style="width:280px">타입</th><th>비고</th></tr></thead>
+    <tbody>
+      <tr><td><code>schemaVersion</code></td><td><code>1</code></td><td>마이그레이션 기준점 <span class="src">project.ts:4</span></td></tr>
+      <tr><td><code>name</code> / <code>bpm</code></td><td>string / number</td><td>project.json의 bpm이 진실 — 로드 시 transport로 동기화 <span class="src">useProjectStore.ts:11-14</span></td></tr>
+      <tr><td><code>timeSignature</code></td><td><code>{numerator, denominator: 1|2|4|8|16}</code></td><td>현재 UI·메트로놈은 4/4 가정 (TODO)</td></tr>
+      <tr><td><code>key</code></td><td><code>{tonic: PitchClass, mode: major|minor} | null</code></td><td>미지정 허용 — 분석 결과로 채울 수 있다</td></tr>
+      <tr><td><code>tracks[]</code></td><td>id(<code>trk_</code>) · name · kind(<code>audio|midi</code>) · volume(linear gain, 1=unity) · pan(−1..1) · mute · solo</td><td>pan은 StereoPannerNode 값 그대로. dB 변환은 UI 관심사 <span class="src">project.ts:32-40</span></td></tr>
+      <tr><td><code>clips[]</code></td><td>id(<code>clp_</code>) · trackId · name · startBeat · lengthBeats · media · origin</td><td><b>평탄 구조</b> — 트랙 이동은 trackId 한 필드 변경. 위치는 beat 단위라 BPM 변경에 음악적 위치 불변 <span class="src">project.ts:61-69</span></td></tr>
+      <tr><td><code>clips[].media</code></td><td><code>{kind:'audio', path, durationSec}</code> | <code>{kind:'midi', path}</code></td><td>path는 프로젝트 폴더 기준 상대경로. durationSec은 레이아웃용 캐시(진실은 파일 헤더). media.kind는 트랙 kind와 일치해야 한다(로드 시 검증) <span class="src">project.ts:48-59, 63</span></td></tr>
+      <tr><td><code>clips[].origin</code></td><td><code>{source:'user'|'ai', jobId?, prompt?}</code></td><td>AI 출력 클립의 이력 추적 — 생성 job과 연결</td></tr>
+      <tr><td><code>createdAt</code> / <code>updatedAt</code></td><td>ISO 8601 string</td><td></td></tr>
+    </tbody>
+  </table></div>
+  <div class="note"><span class="t">현재 데이터 소스</span> 저장/로드 IPC 구현 전이라 앱은 데모 fixture(<code>DEMO_PROJECT</code>: 트랙 3개, 클립 3개 — 그중 1개가 <code>source:'ai'</code>)로 기동한다. 스키마는 실 스키마를 그대로 준수한다. <span class="src">demoProject.ts:6-48</span></div>
+
+  <div class="foot">HMM-ARCH-001 · hyunMM v0.1.0 develop 작업본 (2026-08-24) 기준 · 소스 코드 교차검증 문서 — 코드와 어긋나면 코드가 진실이다.</div>
+
+    </main>
+  </div>
+</section>
+
+<script>
+(function(){
+  var tabs=document.querySelectorAll('.doctab');
+  var panels=document.querySelectorAll('.tabpanel');
+  function show(key){
+    tabs.forEach(function(t){t.classList.toggle('active',t.dataset.tab===key);});
+    panels.forEach(function(p){p.classList.toggle('active',p.id==='tab-'+key);});
+    if(history.replaceState) history.replaceState(null,'','#'+key);
+  }
+  tabs.forEach(function(t){t.addEventListener('click',function(){show(t.dataset.tab);window.scrollTo(0,0);});});
+  var h=(location.hash||'').replace('#','');
+  if(h && document.getElementById('tab-'+h)) show(h);
+})();
+</script>
+<script>
+(function(){
+  var PREF={lang:(function(){try{return localStorage.getItem('docLang')||'ko';}catch(e){return 'ko';}})()};
+  var bk=document.getElementById('btnKo'), bz=document.getElementById('btnZh');
+  function apply(){
+    document.body.classList.toggle('zh', PREF.lang==='zh');
+    if(bk)bk.classList.toggle('active',PREF.lang==='ko');
+    if(bz)bz.classList.toggle('active',PREF.lang==='zh');
+  }
+  function setLang(l){PREF.lang=l;try{localStorage.setItem('docLang',l);}catch(e){}apply();}
+  if(bk)bk.addEventListener('click',function(){setLang('ko');});
+  if(bz)bz.addEventListener('click',function(){setLang('zh');});
+  apply();
+})();
+</script>
+<script>
+/* 이미지 라이트박스 — figure.fig 안 이미지를 클릭하면 확대. */
+(function(){
+  var lb=document.createElement('div');lb.className='lbx';
+  lb.innerHTML='<button class="lbx-close" aria-label="close">×</button>'
+    +'<div class="lbx-zoombar"><button data-z="out" title="축소(-)">−</button><span class="lbx-zval">100%</span>'
+    +'<button data-z="in" title="확대(+)">+</button><button data-z="reset" title="원래대로(0)">⟳</button></div>'
+    +'<div class="lbx-stage"><img alt=""></div><div class="lbx-cap"></div>';
+  document.body.appendChild(lb);
+  var lbImg=lb.querySelector('img'), lbCap=lb.querySelector('.lbx-cap'),
+      lbVal=lb.querySelector('.lbx-zval'), stage=lb.querySelector('.lbx-stage');
+  var scale=1, tx=0, ty=0, drag=null;
+  function render(){lbImg.style.transform='translate('+tx+'px,'+ty+'px) scale('+scale+')';
+    lbVal.textContent=Math.round(scale*100)+'%';lbImg.style.cursor=scale>1?'grab':'default';}
+  function reset(){scale=1;tx=0;ty=0;render();}
+  function zoom(f){var ns=Math.min(8,Math.max(1,scale*f));if(ns===scale)return;scale=ns;if(scale===1){tx=0;ty=0;}render();}
+  function open(src,cap){lbImg.src=src;lbCap.textContent=cap||'';reset();lb.classList.add('open');}
+  function close(){lb.classList.remove('open');lbImg.removeAttribute('src');reset();}
+  document.addEventListener('click',function(e){
+    var img=e.target.closest?e.target.closest('figure.fig img'):null;
+    if(!img)return;
+    var fig=img.closest('figure'), fc=fig?fig.querySelector('figcaption'):null, cap='';
+    if(fc){var zh=fc.querySelector('.i18n-zh'),ko=fc.querySelector('.i18n-ko');
+      cap=(document.body.classList.contains('zh')&&zh)?zh.textContent:(ko?ko.textContent:fc.textContent);}
+    open(img.currentSrc||img.src,(cap||'').trim());
+  });
+  lb.querySelector('.lbx-close').addEventListener('click',function(e){e.stopPropagation();close();});
+  lb.querySelector('.lbx-zoombar').addEventListener('click',function(e){
+    var b=e.target.closest('button');if(!b)return;e.stopPropagation();
+    if(b.dataset.z==='in')zoom(1.25);else if(b.dataset.z==='out')zoom(0.8);else reset();
+  });
+  lb.addEventListener('click',function(e){if(e.target===lb||e.target===stage)close();});
+  stage.addEventListener('wheel',function(e){e.preventDefault();zoom(e.deltaY<0?1.15:0.87);},{passive:false});
+  lbImg.addEventListener('mousedown',function(e){if(scale<=1)return;e.preventDefault();
+    drag={x:e.clientX-tx,y:e.clientY-ty};lbImg.style.cursor='grabbing';});
+  window.addEventListener('mousemove',function(e){if(!drag)return;tx=e.clientX-drag.x;ty=e.clientY-drag.y;render();});
+  window.addEventListener('mouseup',function(){if(drag){drag=null;render();}});
+  lbImg.addEventListener('dblclick',function(e){e.preventDefault();e.stopPropagation();scale>1?reset():zoom(2);});
+  document.addEventListener('keydown',function(e){if(!lb.classList.contains('open'))return;
+    if(e.key==='Escape')close();else if(e.key==='+'||e.key==='=')zoom(1.25);
+    else if(e.key==='-')zoom(0.8);else if(e.key==='0')reset();});
+})();
+</script>

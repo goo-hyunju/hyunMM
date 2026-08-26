@@ -51,6 +51,7 @@ Renderer (renderer/, React 19 + TS + Web Audio)
 | `renderer/src/features/drum-pad/` | 드럼패드 입력·비트 녹음 |
 | `renderer/src/features/keys/` | 가상 키보드 + 외부 MIDI 입력 |
 | `renderer/src/features/timeline/` | 멀티트랙 타임라인·클립 편집 |
+| `renderer/src/features/transport/` | 재생·정지·BPM 컨트롤 UI |
 | `renderer/src/features/mixer/` | 볼륨·팬·솔로·뮤트 |
 | `renderer/src/features/effects/` | 이펙트 랙 UI |
 | `renderer/src/features/automation/` | 오토메이션 레인 |
@@ -74,7 +75,7 @@ npm run build        # typecheck + electron-vite build
 npm run service:dev  # Python 서비스 단독 실행 (uvicorn --reload, service/.venv 필요)
 ```
 
-- 서비스 포트 **8930**은 `app/main/index.ts`와 `service/app/main.py` 양쪽에 상수로 존재한다. 바꾸면 둘 다 바꾼다.
+- 서비스 포트 **8930**은 `app/shared/servicePort.ts`(TS 단일 출처 — main/preload/renderer가 import)와 `service/app/main.py` 두 곳에 상수로 존재한다. 바꾸면 둘 다 바꾼다.
 - Python 서비스 의존성은 `service/pyproject.toml`. AI 관련 무거운 의존성(torch 등)은 optional group `ai`로 분리되어 있다.
 
 ## 브랜치·커밋 규칙

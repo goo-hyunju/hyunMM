@@ -1,18 +1,26 @@
 import { AiCopilotPanel } from './features/ai-copilot/AiCopilotPanel';
-import { DrumPad } from './features/drum-pad/DrumPad';
-import { Keys } from './features/keys/Keys';
-import { Mixer } from './features/mixer/Mixer';
+import { BottomDock } from './features/dock/BottomDock';
 import { Timeline } from './features/timeline/Timeline';
+import { TransportControls } from './features/transport/TransportControls';
 
 export function App() {
 	return (
-		<div>
-			<h1>hyunMM — AI DAW (스캐폴드)</h1>
-			<Timeline />
-			<DrumPad />
-			<Keys />
-			<Mixer />
-			<AiCopilotPanel />
+		<div className="app-shell">
+			<header className="app-header">
+				<span className="app-logo">
+					hyun<span className="app-logo-accent">MM</span>
+				</span>
+				<TransportControls />
+			</header>
+			<div className="app-body">
+				<main className="app-main">
+					<Timeline />
+					<BottomDock />
+				</main>
+				<aside className="app-side">
+					<AiCopilotPanel />
+				</aside>
+			</div>
 		</div>
 	);
 }

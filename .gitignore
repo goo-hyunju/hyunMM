@@ -7,7 +7,9 @@ dist/
 service/.venv/
 __pycache__/
 *.pyc
+*.egg-info/
 service/checkpoints/
+service/staging/
 
 # 사용자 프로젝트 파일
 projects/*

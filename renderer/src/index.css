@@ -1,0 +1,637 @@
+/* 시맨틱 색 토큰 — 컴포넌트에 raw hex 금지, 여기서만 정의한다.
+   다크 틸 + 민트 액센트: 민트는 "AI·실행"의 정체성 색으로만 아껴 쓴다.
+   --timeline-* 레이아웃 변수는 timelineGeometry.ts 상수에서 주입된다(이중 정의 금지). */
+:root {
+	--ui-surface-app: #0b0e0f;
+	--ui-surface-panel: #14191a;
+	--ui-surface-raised: #1b2224;
+	--ui-surface-lane: #171d1e;
+	--ui-border-default: #263032;
+	--ui-content-primary: #e4eae8;
+	--ui-content-muted: #7f8d8b;
+	--ui-action-accent: #6fe7d2;
+	--ui-action-accent-strong: #38b3a0;
+	--ui-action-on-accent: #06211d;
+	--ui-clip-audio: #2e6d8e;
+	--ui-clip-midi: #46986c;
+	--ui-clip-ai-ring: #6fe7d2;
+	--ui-playhead: #ff5c5c;
+	--ui-key-white: #dfe6e4;
+	--ui-key-black: #0e1413;
+
+	--font-mono: 'Cascadia Mono', Consolas, monospace;
+}
+
+* {
+	box-sizing: border-box;
+}
+
+body {
+	margin: 0;
+	background: var(--ui-surface-app);
+	color: var(--ui-content-primary);
+	font-family: 'Segoe UI Variable Text', 'Segoe UI', system-ui, sans-serif;
+	font-size: 14px;
+}
+
+button {
+	font-family: inherit;
+}
+
+:focus-visible {
+	outline: 2px solid var(--ui-action-accent);
+	outline-offset: 1px;
+}
+
+::-webkit-scrollbar {
+	height: 10px;
+	width: 10px;
+}
+
+::-webkit-scrollbar-track {
+	background: var(--ui-surface-panel);
+}
+
+::-webkit-scrollbar-thumb {
+	background: var(--ui-border-default);
+	border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+	background: var(--ui-content-muted);
+}
+
+/* ---------- 앱 셸 ---------- */
+
+.app-shell {
+	display: flex;
+	flex-direction: column;
+	height: 100vh;
+}
+
+.app-header {
+	display: flex;
+	align-items: center;
+	gap: 24px;
+	padding: 10px 16px;
+	border-bottom: 1px solid var(--ui-border-default);
+	background: var(--ui-surface-panel);
+	flex: none;
+}
+
+.app-logo {
+	font-size: 18px;
+	font-weight: 700;
+	letter-spacing: 0.02em;
+}
+
+.app-logo-accent {
+	color: var(--ui-action-accent);
+}
+
+.app-body {
+	display: flex;
+	flex: 1;
+	min-height: 0;
+}
+
+.app-main {
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+	flex: 1;
+	min-width: 0;
+	padding: 12px;
+	overflow-y: auto;
+}
+
+.app-side {
+	width: 340px;
+	flex: none;
+	border-left: 1px solid var(--ui-border-default);
+	background: var(--ui-surface-panel);
+	padding: 12px;
+	overflow-y: auto;
+}
+
+/* ---------- transport ---------- */
+
+.transport-controls {
+	display: flex;
+	align-items: center;
+	gap: 14px;
+}
+
+.transport-controls button {
+	width: 40px;
+	height: 40px;
+	border-radius: 50%;
+	border: 1px solid var(--ui-border-default);
+	background: var(--ui-surface-raised);
+	color: var(--ui-content-primary);
+	cursor: pointer;
+	font-size: 12px;
+}
+
+.transport-controls button[aria-pressed='true'] {
+	background: var(--ui-action-accent);
+	border-color: var(--ui-action-accent);
+	color: var(--ui-action-on-accent);
+	font-weight: 700;
+}
+
+.bpm-field {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	color: var(--ui-content-muted);
+	font-size: 12px;
+	letter-spacing: 0.08em;
+}
+
+.bpm-field input {
+	width: 72px;
+	padding: 6px 8px;
+	border: 1px solid var(--ui-border-default);
+	border-radius: 6px;
+	background: var(--ui-surface-app);
+	color: var(--ui-action-accent);
+	font-family: var(--font-mono);
+	font-size: 15px;
+	text-align: right;
+}
+
+/* ---------- timeline ---------- */
+
+.timeline {
+	border: 1px solid var(--ui-border-default);
+	border-radius: 10px;
+	background: var(--ui-surface-panel);
+	overflow: hidden;
+	flex: none;
+}
+
+.timeline-empty {
+	margin: 0;
+	padding: 32px;
+	color: var(--ui-content-muted);
+	text-align: center;
+}
+
+.timeline-scroll {
+	overflow-x: auto;
+}
+
+.timeline-ruler {
+	display: flex;
+	height: var(--timeline-ruler-h);
+	border-bottom: 1px solid var(--ui-border-default);
+	color: var(--ui-content-muted);
+	font-family: var(--font-mono);
+	font-size: 11px;
+}
+
+.ruler-spacer {
+	position: sticky;
+	left: 0;
+	width: var(--timeline-header-w);
+	flex: none;
+	background: var(--ui-surface-panel);
+	border-right: 1px solid var(--ui-border-default);
+	z-index: 4;
+}
+
+.ruler-bar {
+	flex: none;
+	padding: 7px 0 0 6px;
+	border-right: 1px solid var(--ui-border-default);
+}
+
+.timeline-lanes {
+	position: relative; /* playhead absolute 기준 */
+}
+
+.track-lane {
+	display: flex;
+	height: var(--timeline-lane-h);
+	border-bottom: 1px solid var(--ui-border-default);
+}
+
+.track-lane:last-child {
+	border-bottom: none;
+}
+
+.track-header {
+	position: sticky;
+	left: 0;
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	gap: 2px;
+	width: var(--timeline-header-w);
+	flex: none;
+	padding: 0 12px;
+	background: var(--ui-surface-panel);
+	border-right: 1px solid var(--ui-border-default);
+	z-index: 4; /* playhead(3)보다 위 — 스크롤 시 라인이 헤더를 덮지 않게 */
+}
+
+.track-name {
+	font-size: 13px;
+	font-weight: 600;
+}
+
+.track-kind {
+	font-size: 10px;
+	letter-spacing: 0.1em;
+	color: var(--ui-content-muted);
+	text-transform: uppercase;
+}
+
+.track-clips {
+	position: relative;
+	flex: 1;
+	background: var(--ui-surface-lane);
+}
+
+.clip-block {
+	position: absolute;
+	top: 5px;
+	bottom: 5px;
+	border-radius: 6px;
+	overflow: hidden;
+	font-size: 12px;
+	line-height: 1.2;
+	padding: 4px 8px;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+}
+
+.clip-audio {
+	background: var(--ui-clip-audio);
+}
+
+.clip-midi {
+	background: var(--ui-clip-midi);
+}
+
+.clip-ai {
+	outline: 2px solid var(--ui-clip-ai-ring);
+	outline-offset: -2px;
+}
+
+.playhead {
+	position: absolute;
+	top: 0;
+	bottom: 0;
+	left: var(--timeline-header-w);
+	width: 1px;
+	background: var(--ui-playhead);
+	pointer-events: none;
+	will-change: transform;
+	z-index: 3;
+}
+
+/* ---------- 하단 독 ---------- */
+
+.dock {
+	border: 1px solid var(--ui-border-default);
+	border-radius: 10px;
+	background: var(--ui-surface-panel);
+	flex: none;
+}
+
+.dock-tabs {
+	display: flex;
+	gap: 4px;
+	padding: 8px 8px 0;
+	border-bottom: 1px solid var(--ui-border-default);
+}
+
+.dock-tab {
+	padding: 7px 16px;
+	border: none;
+	border-radius: 8px 8px 0 0;
+	background: none;
+	color: var(--ui-content-muted);
+	cursor: pointer;
+	font-size: 13px;
+}
+
+.dock-tab-active {
+	background: var(--ui-surface-raised);
+	color: var(--ui-content-primary);
+	box-shadow: inset 0 -2px 0 var(--ui-action-accent);
+}
+
+.dock-body {
+	padding: 14px;
+}
+
+/* ---------- 드럼패드 ---------- */
+
+.drum-pad-grid {
+	display: grid;
+	grid-template-columns: repeat(4, minmax(72px, 110px));
+	gap: 10px;
+}
+
+.drum-pad-cell {
+	aspect-ratio: 1;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	gap: 6px;
+	border: 1px solid var(--ui-border-default);
+	border-radius: 10px;
+	background: var(--ui-surface-raised);
+	color: var(--ui-content-primary);
+	cursor: pointer;
+	transition: box-shadow 120ms ease-out, border-color 120ms ease-out;
+}
+
+.drum-pad-cell kbd {
+	font-family: var(--font-mono);
+	font-size: 11px;
+	color: var(--ui-content-muted);
+}
+
+.drum-pad-label {
+	font-size: 12px;
+}
+
+/* 시그니처: 히트 순간 민트 글로우 — 실제 오디오 트리거와 동기 */
+.drum-pad-hit {
+	border-color: var(--ui-action-accent);
+	box-shadow: 0 0 14px 0 var(--ui-action-accent), inset 0 0 8px 0 var(--ui-action-accent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.drum-pad-cell {
+		transition: none;
+	}
+}
+
+/* ---------- 키보드 ---------- */
+
+.keys-toolbar {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	margin-bottom: 10px;
+	font-size: 12px;
+	color: var(--ui-content-muted);
+}
+
+.keys-toolbar button {
+	padding: 4px 10px;
+	border: 1px solid var(--ui-border-default);
+	border-radius: 6px;
+	background: var(--ui-surface-raised);
+	color: var(--ui-content-primary);
+	cursor: pointer;
+}
+
+.keys-toolbar button:disabled {
+	opacity: 0.4;
+	cursor: default;
+}
+
+.keys-octave {
+	font-family: var(--font-mono);
+	color: var(--ui-action-accent);
+	font-size: 14px;
+}
+
+.keys-hint {
+	margin-left: auto;
+}
+
+.keys-bed {
+	display: flex;
+	height: 110px;
+	position: relative;
+}
+
+.key {
+	border: 1px solid var(--ui-surface-app);
+	cursor: pointer;
+	padding: 0;
+}
+
+.key-white {
+	flex: 1;
+	background: var(--ui-key-white);
+	border-radius: 0 0 4px 4px;
+}
+
+.key-black {
+	flex: 0.62;
+	background: var(--ui-key-black);
+	margin: 0 -0.35%;
+	height: 62%;
+	z-index: 1;
+	border-radius: 0 0 3px 3px;
+}
+
+.key-pressed {
+	background: var(--ui-action-accent);
+}
+
+/* ---------- 믹서 ---------- */
+
+.mixer {
+	display: flex;
+	gap: 12px;
+	overflow-x: auto;
+}
+
+.mixer-empty {
+	margin: 0;
+	color: var(--ui-content-muted);
+}
+
+.mixer-strip {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	min-width: 150px;
+	padding: 10px;
+	border: 1px solid var(--ui-border-default);
+	border-radius: 8px;
+	background: var(--ui-surface-raised);
+}
+
+.mixer-name {
+	font-size: 13px;
+	font-weight: 600;
+}
+
+.mixer-fader,
+.mixer-pan {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+
+.mixer-fader input,
+.mixer-pan input {
+	flex: 1;
+	accent-color: var(--ui-action-accent);
+}
+
+.mixer-value {
+	font-family: var(--font-mono);
+	font-size: 11px;
+	color: var(--ui-content-muted);
+	width: 32px;
+	text-align: right;
+}
+
+.mixer-toggles {
+	display: flex;
+	gap: 6px;
+}
+
+.mixer-toggles button {
+	width: 28px;
+	height: 24px;
+	border: 1px solid var(--ui-border-default);
+	border-radius: 5px;
+	background: var(--ui-surface-panel);
+	color: var(--ui-content-muted);
+	cursor: pointer;
+	font-size: 11px;
+	font-weight: 700;
+}
+
+.mixer-toggle-on {
+	background: var(--ui-playhead);
+	border-color: var(--ui-playhead);
+	color: var(--ui-surface-app);
+}
+
+.mixer-solo-on {
+	background: var(--ui-action-accent);
+	border-color: var(--ui-action-accent);
+	color: var(--ui-action-on-accent);
+}
+
+/* ---------- ai-copilot ---------- */
+
+.ai-copilot {
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+}
+
+.ai-copilot-title {
+	margin: 0;
+	font-size: 14px;
+	letter-spacing: 0.02em;
+}
+
+.ai-copilot-title::before {
+	content: '●';
+	color: var(--ui-action-accent);
+	margin-right: 8px;
+	font-size: 10px;
+	vertical-align: 2px;
+}
+
+.ai-copilot-field {
+	display: flex;
+	flex-direction: column;
+	gap: 5px;
+	font-size: 12px;
+	color: var(--ui-content-muted);
+}
+
+.ai-copilot-field textarea {
+	min-height: 72px;
+	resize: vertical;
+	padding: 8px 10px;
+	border: 1px solid var(--ui-border-default);
+	border-radius: 8px;
+	background: var(--ui-surface-app);
+	color: var(--ui-content-primary);
+	font-family: inherit;
+	font-size: 13px;
+}
+
+.ai-copilot-field select {
+	padding: 6px 8px;
+	border: 1px solid var(--ui-border-default);
+	border-radius: 6px;
+	background: var(--ui-surface-app);
+	color: var(--ui-content-primary);
+}
+
+.ai-copilot-row {
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+}
+
+.ai-copilot-row button,
+.ai-copilot-status button {
+	padding: 8px 14px;
+	border: 1px solid var(--ui-border-default);
+	border-radius: 8px;
+	background: var(--ui-surface-raised);
+	color: var(--ui-content-primary);
+	cursor: pointer;
+}
+
+/* 생성 = 이 패널의 주 행동 — 민트 CTA */
+.ai-copilot-row > button {
+	background: var(--ui-action-accent);
+	border-color: var(--ui-action-accent);
+	color: var(--ui-action-on-accent);
+	font-weight: 700;
+}
+
+.ai-copilot-row > button:not(:disabled):hover {
+	background: var(--ui-action-accent-strong);
+	border-color: var(--ui-action-accent-strong);
+}
+
+.ai-copilot-row > button:disabled {
+	opacity: 0.4;
+	cursor: default;
+}
+
+.ai-copilot-kind {
+	color: var(--ui-content-primary);
+}
+
+.ai-copilot-muted {
+	color: var(--ui-content-muted);
+	font-size: 11px;
+	margin-left: 6px;
+}
+
+.ai-copilot-status {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	font-size: 13px;
+	flex-wrap: wrap;
+}
+
+.ai-copilot-status progress {
+	accent-color: var(--ui-action-accent);
+	flex: 1;
+	min-width: 80px;
+}
+
+.ai-copilot-error {
+	color: var(--ui-playhead);
+}
+
+.ai-copilot-notice {
+	margin: 0;
+	font-size: 12px;
+	color: var(--ui-clip-ai-ring);
+}

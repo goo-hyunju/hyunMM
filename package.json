@@ -1,7 +1,7 @@
 {
 	"name": "hyunmm",
 	"productName": "hyunMM",
-	"version": "0.1.0",
+	"version": "0.2.0",
 	"private": true,
 	"description": "AI DAW — 사람이 DAW로 음악을 조작하면 AI가 프로젝트를 이해하고 함께 편곡·생성하는 데스크톱 앱",
 	"main": "out/main/index.js",
@@ -14,7 +14,8 @@
 		"format": "prettier --write .",
 		"format:check": "prettier --check .",
 		"test": "vitest run",
-		"service:dev": "uvicorn app.main:app --reload --port 8930 --app-dir service"
+		"service:dev": "uvicorn app.main:app --reload --port 8930 --app-dir service",
+		"service:serve": "uvicorn app.main:app --host 0.0.0.0 --port 8930 --app-dir service"
 	},
 	"dependencies": {
 		"react": "^19.0.0",
