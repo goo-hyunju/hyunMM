@@ -1,7 +1,7 @@
 {
 	"name": "hyunmm",
 	"productName": "hyunMM",
-	"version": "0.2.0",
+	"version": "0.2.1",
 	"private": true,
 	"description": "AI DAW — 사람이 DAW로 음악을 조작하면 AI가 프로젝트를 이해하고 함께 편곡·생성하는 데스크톱 앱",
 	"main": "out/main/index.js",

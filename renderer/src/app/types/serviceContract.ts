@@ -31,10 +31,7 @@ export interface GenerateRequest {
 }
 
 export type ServiceErrorCode =
-	| 'SERVICE_BUSY'
-	| 'MODEL_NOT_LOADED'
-	| 'INVALID_CONTEXT'
-	| 'GENERATION_FAILED';
+	'SERVICE_BUSY' | 'MODEL_NOT_LOADED' | 'INVALID_CONTEXT' | 'GENERATION_FAILED';
 
 export interface ServiceError {
 	code: ServiceErrorCode;

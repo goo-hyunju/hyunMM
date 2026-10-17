@@ -4,14 +4,7 @@
 import { getAudioContext } from './audioContext';
 
 export type DrumSound =
-	| 'kick'
-	| 'snare'
-	| 'hat-closed'
-	| 'hat-open'
-	| 'tom-lo'
-	| 'tom-hi'
-	| 'rim'
-	| 'clap';
+	'kick' | 'snare' | 'hat-closed' | 'hat-open' | 'tom-lo' | 'tom-hi' | 'rim' | 'clap';
 
 function noiseBuffer(ctx: AudioContext, durationSec: number): AudioBuffer {
 	const length = Math.ceil(durationSec * ctx.sampleRate);

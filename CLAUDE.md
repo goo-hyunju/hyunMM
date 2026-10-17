@@ -17,7 +17,7 @@ hyunMM은 **AI DAW**다. "AI가 음악을 만들어주는 프로그램"이 아�
 
 ## 현재 상태
 
-**스캐폴드 단계.** 디렉터리 구조와 스텁 코드만 있다. 의존성 미설치(`node_modules`, `.venv` 없음), 기능 미구현. `npm install` / `pip install`은 전역 규칙대로 **사용자 승인 후** 진행한다.
+**MVP 1~4 완료 (v0.2.x).** 생성 API 계약 v1, transport/timeline, mock 생성기 왕복(생성→진행률→미리듣기→수락), 드럼패드·키·믹서 UI까지 구현되어 있다. 미구현: `project.json` 저장/로드, 클립 오디오 재생, 이펙트·오토메이션, 실모델 추론, 패키징. 영역별 구현 상태의 단일 출처는 `README.md`의 "구현 현황" 표다. 새 의존성 추가(`npm install` / `pip install`)는 전역 규칙대로 **사용자 승인 후** 진행한다.
 
 ## 아키텍처
 
@@ -99,3 +99,5 @@ npm run service:dev  # Python 서비스 단독 실행 (uvicorn --reload, service
 ## 에이전트 팀
 
 `/tr`(구현), `/rs`(조사), `/sw`(작은 작업) 커맨드와 `.claude/agent-teams.md`를 따른다. Codex 연동은 `.codex/README.md`, 외부 검증은 `.claude/codex-round.md`.
+
+`.claude/`와 `.codex/`는 **로컬 전용 설정**이라 git 추적 대상이 아니다(`.gitignore`). 공개 저장소에는 올라가지 않으며, 이 절은 해당 파일을 가진 로컬 환경에서만 유효하다.

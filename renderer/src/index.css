@@ -348,7 +348,9 @@ button {
 	background: var(--ui-surface-raised);
 	color: var(--ui-content-primary);
 	cursor: pointer;
-	transition: box-shadow 120ms ease-out, border-color 120ms ease-out;
+	transition:
+		box-shadow 120ms ease-out,
+		border-color 120ms ease-out;
 }
 
 .drum-pad-cell kbd {
@@ -364,7 +366,9 @@ button {
 /* 시그니처: 히트 순간 민트 글로우 — 실제 오디오 트리거와 동기 */
 .drum-pad-hit {
 	border-color: var(--ui-action-accent);
-	box-shadow: 0 0 14px 0 var(--ui-action-accent), inset 0 0 8px 0 var(--ui-action-accent);
+	box-shadow:
+		0 0 14px 0 var(--ui-action-accent),
+		inset 0 0 8px 0 var(--ui-action-accent);
 }
 
 @media (prefers-reduced-motion: reduce) {

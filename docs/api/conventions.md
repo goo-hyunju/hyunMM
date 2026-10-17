@@ -6,13 +6,19 @@
 
 ## Base URL / 포트
 
-- `http://127.0.0.1:8930` — 로컬 전용, 외부 바인딩 금지.
+- 기본값 `http://127.0.0.1:8930` — Electron main이 로컬 서비스를 spawn하고 preload가 `window.hyunmm.serviceUrl`로
+  렌더러에 전달한다.
+- **원격 AI 서버 모드**: 환경변수 `HYUNMM_SERVICE_URL`이 있으면 main은 로컬 spawn을 생략하고 preload가 그 주소를
+  `serviceUrl`로 넘긴다. 서버 쪽은 `npm run service:serve`(`--host 0.0.0.0`)로 띄운다.
+  서비스에 인증이 없으므로 외부 바인딩은 **같은 LAN 또는 Tailscale 같은 VPN 안에서만** 허용하고,
+  인터넷에 직접 노출하지 않는다 (README 2장).
 - CORS: 렌더러는 dev에서 `http://localhost:<포트>` origin이므로 서비스가 로컬 origin의
   교차 출처 요청을 허용한다 (`service/app/main.py`의 CORSMiddleware, 로컬 origin 한정).
   TODO 패키징: `loadFile`(file:// origin)로 전환하면 이 regex에 걸리지 않는다 — 프로덕션
   로드 방식 확정 시 재검토.
-- 포트 상수는 `app/main/index.ts` 와 `service/app/main.py` 두 곳에 있다. **바꾸면 둘 다 바꾼다.**
-- WebSocket은 `ws://127.0.0.1:8930/ws/...`.
+- 포트 상수는 `app/shared/servicePort.ts`(TS 단일 출처 — main/preload/renderer가 import)와
+  `service/app/main.py` 두 곳에 있다. **바꾸면 둘 다 바꾼다.**
+- WebSocket은 `serviceUrl`의 scheme을 `ws(s)`로 바꾼 주소를 쓴다 (기본 `ws://127.0.0.1:8930/ws/...`).
 
 ## Wire 포맷
 

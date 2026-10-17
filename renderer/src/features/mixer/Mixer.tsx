@@ -56,7 +56,11 @@ function MixerStrip({ track, onChange }: MixerStripProps) {
 					onChange={(e) => onChange(track.id, { pan: Number(e.target.value) })}
 				/>
 				<span className="mixer-value">
-					{track.pan === 0 ? 'C' : track.pan < 0 ? `L${Math.round(-track.pan * 100)}` : `R${Math.round(track.pan * 100)}`}
+					{track.pan === 0
+						? 'C'
+						: track.pan < 0
+							? `L${Math.round(-track.pan * 100)}`
+							: `R${Math.round(track.pan * 100)}`}
 				</span>
 			</label>
 			<div className="mixer-toggles">

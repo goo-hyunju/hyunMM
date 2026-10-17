@@ -5,7 +5,19 @@ import { hasModifier, isTypingTarget } from '../../app/domGuards';
 
 // 컴퓨터 키보드 → 반음 오프셋 (A=도 기준의 관용 배치)
 const KEY_TO_OFFSET: Record<string, number> = {
-	a: 0, w: 1, s: 2, e: 3, d: 4, f: 5, t: 6, g: 7, y: 8, h: 9, u: 10, j: 11, k: 12,
+	a: 0,
+	w: 1,
+	s: 2,
+	e: 3,
+	d: 4,
+	f: 5,
+	t: 6,
+	g: 7,
+	y: 8,
+	h: 9,
+	u: 10,
+	j: 11,
+	k: 12,
 };
 
 const OCTAVE_MIN = 2;

@@ -3,19 +3,7 @@
 
 export const PROJECT_SCHEMA_VERSION = 1;
 
-export type PitchClass =
-	| 'C'
-	| 'C#'
-	| 'D'
-	| 'D#'
-	| 'E'
-	| 'F'
-	| 'F#'
-	| 'G'
-	| 'G#'
-	| 'A'
-	| 'A#'
-	| 'B';
+export type PitchClass = 'C' | 'C#' | 'D' | 'D#' | 'E' | 'F' | 'F#' | 'G' | 'G#' | 'A' | 'A#' | 'B';
 
 export interface MusicalKey {
 	tonic: PitchClass;

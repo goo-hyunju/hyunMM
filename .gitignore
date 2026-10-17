@@ -8,6 +8,7 @@ service/.venv/
 __pycache__/
 *.pyc
 *.egg-info/
+.pytest_cache/
 service/checkpoints/
 service/staging/
 
@@ -20,9 +21,9 @@ projects/*
 .env.*
 !.env.example
 
-# 로컬 설정
-.claude/settings.local.json
-.claude/scheduled_tasks.lock
+# 로컬 에이전트 설정 (개인 환경 — 저장소에 올리지 않음)
+.claude/
+.codex/
 
 # OS
 Thumbs.db

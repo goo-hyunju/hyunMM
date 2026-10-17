@@ -12,7 +12,15 @@ export const DEMO_PROJECT: Project = {
 	tracks: [
 		{ id: 'trk_drums', name: 'Drums', kind: 'audio', volume: 1, pan: 0, mute: false, solo: false },
 		{ id: 'trk_bass', name: 'Bass', kind: 'midi', volume: 0.8, pan: 0, mute: false, solo: false },
-		{ id: 'trk_keys', name: 'Keys', kind: 'midi', volume: 0.7, pan: -0.2, mute: false, solo: false },
+		{
+			id: 'trk_keys',
+			name: 'Keys',
+			kind: 'midi',
+			volume: 0.7,
+			pan: -0.2,
+			mute: false,
+			solo: false,
+		},
 	],
 	clips: [
 		{

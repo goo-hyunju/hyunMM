@@ -31,6 +31,7 @@ MVP는 동시 생성 1개 — 진행 중 `/generate` 재요청은 409 + `SERVICE
 
 ```
 queued → running → succeeded | failed | cancelled
+queued → cancelled            (실행 전 취소 — 구현상 가능, 상태는 cancelled로 종료)
 ```
 
 - 종료 상태(succeeded/failed/cancelled)는 최종이다. succeeded 직후 cancel이 와도 상태는 바뀌지

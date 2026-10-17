@@ -1,0 +1,6 @@
+# GitHub 언어 통계에서 문서를 제외한다 (HTML 문서가 주 언어로 잡히는 것 방지)
+docs/** linguist-documentation
+*.md linguist-documentation
+
+# 줄바꿈 정규화
+* text=auto eol=lf

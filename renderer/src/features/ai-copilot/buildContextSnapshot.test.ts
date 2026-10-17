@@ -8,9 +8,7 @@ const BASE: Project = {
 	bpm: 100,
 	timeSignature: { numerator: 4, denominator: 4 },
 	key: { tonic: 'D', mode: 'major' },
-	tracks: [
-		{ id: 'trk_1', name: 'T1', kind: 'audio', volume: 1, pan: 0, mute: false, solo: false },
-	],
+	tracks: [{ id: 'trk_1', name: 'T1', kind: 'audio', volume: 1, pan: 0, mute: false, solo: false }],
 	clips: [
 		{
 			id: 'clp_1',

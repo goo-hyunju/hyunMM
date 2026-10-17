@@ -1,0 +1,17 @@
+# 빌드·의존성
+node_modules/
+out/
+dist/
+package-lock.json
+
+# Python 서비스 (Prettier 대상 아님)
+service/
+
+# 문서 — Markdown 표·HTML 문서는 수동 서식 유지
+*.md
+*.html
+
+# 로컬 설정
+.claude/
+.codex/
+projects/

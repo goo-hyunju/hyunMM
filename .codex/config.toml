@@ -1,7 +1,0 @@
-# hyunMM AI DAW workspace-scoped Codex configuration.
-# Codex loads this only when the project is trusted.
-
-# `agents`는 이름 있는 에이전트 역할 정의용으로 예약된 영역이다.
-# 역할 정의는 `.codex/agents/*.toml`에 둔다.
-# 스칼라 설정 키 enabled/max_concurrent/interrupt_message 등을 [agents] 아래에 두면
-# Codex가 각 키를 agent 이름으로 파싱할 수 있으므로 넣지 않는다.
